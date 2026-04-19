@@ -1,3 +1,41 @@
+Created By : Moussa Alsgehir Email :<a> moussaasd56@gmail.com</a>
+Installation
+To get started, clone this repository.
+
+```
+git clone https://github.com/MoussaAlsgehir/educational-platform-back-end.git
+```
+Next, copy your .env.example file as .env and configure your Database connection.
+
+```
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=db-educational-platform
+DB_USERNAME=YOUR-DATABASE-USERNAME
+DB_PASSWORD=YOUR-DATABASE-PASSWROD
+```
+
+Run Packages and helpers
+You have to all used packages and load helpers as below.
+
+```
+composer install
+npm install
+npm run build
+```
+Generate new application key
+You have to generate new application key as below.
+```
+php artisan key:generate
+```
+
+Run Migrations and Seeders
+You have to run all the migration files included with the project and also run seeders as below.
+```
+php artisan migrate
+```
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">
