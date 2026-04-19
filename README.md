@@ -21,8 +21,6 @@ You have to all used packages and load helpers as below.
 
 ```
 composer install
-npm install
-npm run build
 ```
 Generate new application key
 You have to generate new application key as below.
