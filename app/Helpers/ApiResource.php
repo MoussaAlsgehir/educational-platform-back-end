@@ -6,7 +6,7 @@ namespace App\Helpers;
 class ApiResource
 {
 
-    static function sendResponse($code = 200, $message = null, $data = null)
+    static function sendResponse( $message = null, $data = null, $code = 200)
     {
         $response = [
             'status' => $code,
