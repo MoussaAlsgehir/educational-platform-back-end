@@ -1,0 +1,35 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('courses', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('teacher_id')->constrained('users')->onDelete('cascade');
+            $table->string('title');
+            $table->text('description')->nullable();
+            $table->enum('course_type', ['quiz_based', 'attendance_only'])->default('quiz_based');//نوع الدورة: دورة تعتمد على الاختبارات أو دورة تعتمد فقط على الحضور
+            $table->integer('certificate_attendance_threshold')->default(60);//نسبة الحضور المطلوبة للحصول على الشهادة
+            $table->decimal('price', 10, 2)->default(0.00);
+            $table->string('status')->default('pending'); // pending, published, rejected
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
+            $table->timestamps();
+        });
+    }
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('courses');
+    }
+};
