@@ -8,6 +8,7 @@ use App\Http\Requests\AuthRequest\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Mail\OtpMail;
 use App\Models\Otp;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -39,6 +40,10 @@ class AuthController extends Controller
         }
 
         $user = User::create($validatedData);
+
+// إسناد الأدوار الافتراضية (طالب ومدرس)
+        $defaultRoles = Role::whereIn('name', ['student', 'instructor'])->pluck('id')->toArray();
+        $user->roles()->attach($defaultRoles);
 
         $otpCode = (string) rand(100000, 999999);
         Otp::updateOrCreate(
