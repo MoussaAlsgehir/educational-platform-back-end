@@ -23,28 +23,23 @@ class AuthController extends Controller
     {
         $validatedData = $request->validated();
 
-        // تشفير كلمة المرور
         $validatedData['password'] = Hash::make($request->password);
 
-        // تحويل التاريخ المدخل إلى الصيغة القياسية لقاعدة البيانات Y-m-d منعا لأي Error
         if (!empty($validatedData['date_of_birth'])) {
             $validatedData['date_of_birth'] = \Carbon\Carbon::parse($validatedData['date_of_birth'])->format('Y-m-d');
         }
 
-        // معالجة وحفظ ملف الصورة الشخصية باسم فريد مستحيل التكرار
         if ($request->hasFile('avatar_url')) {
             $file = $request->file('avatar_url');
             $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
             $path = $file->storeAs('avatars', $fileName, 'public');
             $validatedData['avatar_url'] = $path;
         } else {
-            $validatedData['avatar_url'] = 'avatars/default-avatar.png';
+            $validatedData['avatar_url'] = 'avatars/default-avatar.jpg';
         }
 
-        // إنشاء حساب المستخدم
         $user = User::create($validatedData);
 
-        // توليد وإرسال الـ OTP للتفعيل المبدئي
         $otpCode = (string) rand(100000, 999999);
         Otp::updateOrCreate(
             ['user_id' => $user->id],
@@ -71,7 +66,6 @@ class AuthController extends Controller
         if (Auth::attempt($request->only('email', 'password'))) {
             $user = Auth::user();
 
-            // توليد OTP جديد وتصفير حالة الاستخدام لعملية الدخول الحالية
             $otpCode = (string) rand(100000, 999999);
             Otp::updateOrCreate(
                 ['user_id' => $user->id],
@@ -104,7 +98,6 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        // التحقق من صحة الكود وصلاحيته الزمنية وأنه لم يُستخدم من قبل
         $otp = Otp::where('user_id', $user->id)
             ->where('code', $request->otp_code)
             ->where('expires_at', '>', now())
@@ -112,14 +105,11 @@ class AuthController extends Controller
             ->first();
 
         if ($otp) {
-            // توليد توكن الـ المصادقة (Sanctum) بعد التحقق الناجح
             $token = $user->createToken('auth_token')->plainTextToken;
 
-            // استهلاك الكود وتحويله لمستخدم
             $otp->is_used = true;
             $otp->save();
 
-            // تفعيل الإيميل رسمياً في قاعدة البيانات إذا لم يكن مفعلاً
             if (is_null($user->email_verified_at)) {
                 $user->email_verified_at = now();
                 $user->save();
@@ -159,7 +149,6 @@ class AuthController extends Controller
 
         $otpCode = (string) rand(100000, 999999);
 
-        // تحديث الكود وتجهيزه لعملية استعادة الباسورد
         Otp::updateOrCreate(
             ['user_id' => $user->id],
             [
@@ -207,12 +196,11 @@ class AuthController extends Controller
         $request->validate([
             'email'    => 'required|email|exists:users,email',
             'otp_code' => 'required|string',
-            'password' => 'required|string|min:8|confirmed', // تتطلب وجود حقل password_confirmation في الطلب
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
         $user = User::where('email', $request->email)->first();
 
-        // الفحص الأخير للتأكد من حماية المسار وعدم التزوير
         $otp = Otp::where('user_id', $user->id)
             ->where('code', $request->otp_code)
             ->where('expires_at', '>', now())
@@ -223,11 +211,9 @@ class AuthController extends Controller
             return ApiResource::sendResponse("Session expired or invalid OTP. Please request a new code.", null, 400);
         }
 
-        // تشفير وحفظ كلمة المرور الجديدة
         $user->password = Hash::make($request->password);
         $user->save();
 
-        // إغلاق الكود وتحويله لمستعمل لمنع الاختراق العكسي
         $otp->is_used = true;
         $otp->save();
 

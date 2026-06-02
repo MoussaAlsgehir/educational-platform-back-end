@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Platform_learnova\AuthController;
+use App\Http\Controllers\Platform_learnova\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -16,6 +17,11 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 // 🔒 مسارات محمية (تتطلب تسجيل الدخول وإرسال الـ Token عبر الـ Bearer Token)
 Route::middleware('auth:sanctum')->group(function () {
+
+    Route::prefix('profile')->group(function () {
+        Route::get('/{id}', [ProfileController::class, 'show']);
+        Route::post('/{id}', [ProfileController::class, 'update']);
+    });
 
     Route::post('/logout', [AuthController::class, 'logout']);
 });
