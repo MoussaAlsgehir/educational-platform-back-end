@@ -47,4 +47,33 @@ class User extends Authenticatable
     {
         return $this->hasMany(Otp::class);
     }
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'role_user');
+    }
+
+
+    /**
+     * الفحص إذا كان المستخدم يملك دوراً معيناً
+     */
+    public function hasRole(string $role): bool
+    {
+        return $this->roles->contains('name', $role);
+    }
+
+    /**
+     * الفحص إذا كان المستخدم يملك أي دور من قائمة أدوار معينة
+     */
+    public function hasAnyRole(array $roles): bool
+    {
+        return $this->roles->pluck('name')->intersect($roles)->isNotEmpty();
+    }
+
+    /**
+     * دالة مختصرة للفحص إذا كان أدمن
+     */
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('admin') || $this->hasRole('super_admin');
+    }
 }
