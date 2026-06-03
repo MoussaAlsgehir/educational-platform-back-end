@@ -23,10 +23,13 @@ class StoreCourseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'required|string|max:255',
+            'title' => 'required|string|max:255|unique:courses,title,NULL,id,teacher_id,' . auth()->id(),
             'description' => 'nullable|string',
             'course_type' => 'sometimes|in:quiz_based,attendance_only',
-            'price' => 'required|numeric|min:0',
+            'price' => 'required|numeric|min:0|max:999999.99',
+            'start_date' => 'nullable|date|after_or_equal:today',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'certificate_attendance_threshold' => 'sometimes|integer|min:0|max:100',
             'category_ids' => 'required|array',
             'category_ids.*' => 'exists:categories,id',
         ];

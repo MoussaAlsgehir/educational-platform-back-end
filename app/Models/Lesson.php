@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Lesson extends Model
 {
+        protected $guarded = [];
+
     public function section()
     {
         return $this->belongsTo(Section::class);
@@ -15,5 +17,5 @@ class Lesson extends Model
     {
         return $this->hasMany(Content::class);
     }
-    
+
 }

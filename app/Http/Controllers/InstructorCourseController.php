@@ -6,10 +6,11 @@ use App\Helpers\ApiResource;
 use App\Models\Course;
 use Illuminate\Http\Request;
 use App\Http\Requests\CoursesRequest\StoreCourseRequest;
+use App\Http\Resources\CourseResource;
 use App\Services\CourseService;
 use PHPUnit\TextUI\Help;
 
-class CourseController extends Controller
+class InstructorCourseController extends Controller
 {
 
     public function __construct( protected CourseService $courseService) {}
@@ -36,7 +37,7 @@ class CourseController extends Controller
     {
         $course = $this->courseService->createCourse($request->validated(),auth()->id());
 
-        return ApiResource::sendResponse("Course created successfully.", $course,201);
+        return ApiResource::sendResponse("Course created successfully.", new CourseResource($course),201);
 
     }
 

@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\Platform_learnova\AuthController;
 use App\Http\Controllers\Platform_learnova\ProfileController;
 use App\Http\Controllers\Platform_learnova\RoleController;
+use App\Http\Controllers\InstructorCourseController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -49,12 +51,14 @@ Route::middleware('auth:sanctum')->group(function () {
     // 4. مسارات الإدارة المشتركة (Super Admin & Admin)
     Route::middleware('role:super_admin,admin')->group(function () {
         // مسارات التحكم المشترك
+        Route::apiResource('categories', CategoryController::class);
     });
 
     // 5. مسارات المدربين (Instructors)
     Route::middleware('role:instructor')->prefix('instructor')->group(function () {
         // مسارات المدرسين
-    });
+        Route::post('/courses', [InstructorCourseController::class, 'store']);
+        });
 
     // 6. مسارات الطلاب (Students)
     Route::middleware('role:student')->prefix('student')->group(function () {

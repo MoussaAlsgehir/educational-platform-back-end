@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Course extends Model
 {
+
+    protected $guarded = [];
+
     public function categorys()
     {
         return $this->belongsToMany(Category::class, 'category_course');
