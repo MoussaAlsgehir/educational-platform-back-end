@@ -1,9 +1,12 @@
 <?php
 
 use App\Http\Controllers\Platform_learnova\NotificationController;
+use App\Http\Controllers\Admins\CategoryController;
 use App\Http\Controllers\Platform_learnova\AuthController;
 use App\Http\Controllers\Platform_learnova\ProfileController;
 use App\Http\Controllers\Platform_learnova\RoleController;
+use App\Http\Controllers\Instructors\InstructorCourseController;
+use App\Http\Controllers\Students\StudentCourseController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -57,15 +60,21 @@ Route::prefix('notifications')->controller(NotificationController::class)->group
     // 4. مسارات الإدارة المشتركة (Super Admin & Admin)
     Route::middleware('role:super_admin,admin')->group(function () {
         // مسارات التحكم المشترك
+        Route::apiResource('categories', CategoryController::class);
     });
 
     // 5. مسارات المدربين (Instructors)
     Route::middleware('role:instructor')->prefix('instructor')->group(function () {
         // مسارات المدرسين
-    });
+        Route::post('/courses', [InstructorCourseController::class, 'store']);
+        });
 
     // 6. مسارات الطلاب (Students)
     Route::middleware('role:student')->prefix('student')->group(function () {
         // مسارات الطلاب
+        Route::get('/categories', [CategoryController::class, 'index']);//عرض التصنيفات للطلاب
+        Route::get('/courses', [StudentCourseController::class, 'index']);//عرض الدورات المتاحة للطلاب
+        Route::get('/courses/category/{id}', [StudentCourseController::class, 'showByCategory']);//عرض الدورات حسب التصنيف
+        Route::get('/courses/{id}', [StudentCourseController::class, 'show']);//عرض تفاصيل دورة معينة للطلاب
     });
 });
