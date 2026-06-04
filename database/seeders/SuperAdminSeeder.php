@@ -22,7 +22,7 @@ class SuperAdminSeeder extends Seeder
             'phone' => '+963900000000',
             'date_of_birth' => '1990-01-01',
             'education_level' => 'bachelor',
-            'avatar_url' => '',
+            'avatar_url' => 'avatars/default-avatar.jpg',
             'password' => Hash::make('12345678'),
         ]);
 
