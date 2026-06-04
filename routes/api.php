@@ -45,8 +45,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:super_admin')->group(function () {
         Route::get('/roles', [RoleController::class, 'index']);
         Route::post('/roles', [RoleController::class, 'store']);
-        Route::put('/roles/{id}', [RoleController::class, 'update']);
-        Route::delete('/roles/{id}', [RoleController::class, 'destroy']);
+        Route::post('/roles/{id}', [RoleController::class, 'update']);
+        Route::post('/roles/{id}', [RoleController::class, 'destroy']);
     });
 
     // 4. مسارات الإدارة المشتركة (Super Admin & Admin)

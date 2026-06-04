@@ -4,18 +4,21 @@ namespace App\Http\Controllers\Platform_learnova;
 
 use App\Helpers\ApiResource;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\RoleResource;
 use App\Models\Role;
 use Illuminate\Http\Request;
 
 class RoleController extends Controller
 {
+    // جلب جميع الأدوار
     public function index()
     {
         $roles = Role::all();
 
-        return ApiResource::sendResponse("Roles retrieved successfully.", $roles);
+        return ApiResource::sendResponse("Roles retrieved successfully.", RoleResource::collection($roles));
     }
 
+    // إنشاء دور جديد
     public function store(Request $request)
     {
         $request->validate([
@@ -26,9 +29,10 @@ class RoleController extends Controller
             'name' => $request->name,
         ]);
 
-        return ApiResource::sendResponse("Role created successfully.", $role, 201);
+        return ApiResource::sendResponse("Role created successfully.", new RoleResource($role), 201);
     }
 
+    // تعديل دور موجود
     public function update(Request $request, $id)
     {
         $role = Role::findOrFail($id);
@@ -41,9 +45,10 @@ class RoleController extends Controller
             'name' => $request->name,
         ]);
 
-        return ApiResource::sendResponse("Role updated successfully.", $role);
+        return ApiResource::sendResponse("Role updated successfully.", new RoleResource($role));
     }
 
+    // حذف دور معين
     public function destroy($id)
     {
         $role = Role::findOrFail($id);
