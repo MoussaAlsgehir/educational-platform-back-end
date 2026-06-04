@@ -10,6 +10,8 @@ use App\Mail\OtpMail;
 use App\Models\Otp;
 use App\Models\Role;
 use App\Models\User;
+use App\Notifications\GeneralNotification;
+use App\Notifications\OTPVerifiedSuccessfullyNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -125,11 +127,17 @@ class AuthController extends Controller
                 'token'            => $token,
             ];
 
+            // $user->notify(new GeneralNotification(
+            //     "OTP Verified Successfully",
+            //     "Your OTP has been verified successfully.",
+            //     "auth_otp"
+            // ));
             return ApiResource::sendResponse("OTP verified successfully", $data);
         }
 
         return ApiResource::sendResponse("Invalid or expired OTP", null, 400);
     }
+
 
     /**
      * تسجيل الخروج وإبطال التوكن الحالي
