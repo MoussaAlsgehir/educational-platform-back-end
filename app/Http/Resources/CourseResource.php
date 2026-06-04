@@ -20,9 +20,13 @@ class CourseResource extends JsonResource
             'description' => $this->description,
             'course_type' => $this->course_type,
             'price' => $this->price,
-            'categorys' => $this->categorys->pluck('name'),
+            'category_names' => $this->WhenLoaded('categories',function () {
+                return $this->categories->pluck('name');
+            }),
             'status' => $this->status,
-            'category_ids' => $this->categorys->pluck('id'),
+            'category_ids' => $this->WhenLoaded('categories',function () {
+                return $this->categories->pluck('id');
+            }),
             'start_date' => $this->start_date,
             'end_date' => $this->end_date,
             'certificate_attendance_threshold' => $this->certificate_attendance_threshold,

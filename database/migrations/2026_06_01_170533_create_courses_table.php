@@ -19,9 +19,9 @@ return new class extends Migration
             $table->enum('course_type', ['quiz_based', 'attendance_only'])->default('quiz_based');//نوع الدورة: دورة تعتمد على الاختبارات أو دورة تعتمد فقط على الحضور
             $table->integer('certificate_attendance_threshold')->default(60);//نسبة الحضور المطلوبة للحصول على الشهادة
             $table->decimal('price', 10, 2)->default(0.00);
-            $table->string('status')->default('pending'); // pending, published, rejected
+            $table->string('status')->default('pending'); // pending, active, rejected,upcoming ,completed
             $table->date('start_date')->nullable();
-            $table->date('end_date')->nullable();
+            $table->date('end_date')->nullable();//تاريخ الدورة يحدد فترة تفاعل الاستاذ مع الطلاب
             $table->timestamps();
             $table->unique(['teacher_id', 'title']); // ضمان عدم تكرار العنوان لنفس المعلم
         });

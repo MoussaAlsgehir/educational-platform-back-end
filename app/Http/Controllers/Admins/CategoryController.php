@@ -1,7 +1,7 @@
 <?php
 
-namespace App\Http\Controllers;
-
+namespace App\Http\Controllers\Admins;
+use App\Http\Controllers\Controller;
 use App\Helpers\ApiResource;
 use App\Models\Category;
 use Illuminate\Http\Request;
