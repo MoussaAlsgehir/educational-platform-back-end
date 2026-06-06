@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\CoursesRequest\StoreCourseRequest;
 use App\Http\Resources\CourseResource;
 use App\Services\CourseService;
+use Illuminate\Support\Facades\Auth;
 use PHPUnit\TextUI\Help;
 
 class InstructorCourseController extends Controller
@@ -19,7 +20,7 @@ class InstructorCourseController extends Controller
      */
     public function index()
     {
-        $courses = Course::where('teacher_id', auth()->id)->get();
+        $courses = Course::where('teacher_id', Auth::id())->get();
         return ApiResource::sendResponse("Courses retrieved successfully.", CourseResource::collection($courses));
 
     }
@@ -29,7 +30,7 @@ class InstructorCourseController extends Controller
 
     public function store(StoreCourseRequest $request)
     {
-        $course = $this->courseService->createCourse($request->validated(),auth()->id);
+        $course = $this->courseService->createCourse($request->validated(),Auth::id());
 
         return ApiResource::sendResponse("Course created successfully.", new CourseResource($course),201);
 
@@ -38,9 +39,10 @@ class InstructorCourseController extends Controller
     /**
      * Display the specified course.
      */
-    public function show(Course $course)
+    public function show($id)
     {
         //
+        $course = Course::where('teacher_id', Auth::id())->findOrFail($id);
         return ApiResource::sendResponse("Course details retrieved successfully.", new CourseResource($course));
     }
 

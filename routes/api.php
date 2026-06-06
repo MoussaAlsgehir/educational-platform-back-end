@@ -59,6 +59,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:instructor')->prefix('instructor')->group(function () {
         // مسارات المدرسين
         Route::post('/courses', [InstructorCourseController::class, 'store']);
+        Route::get('/courses', [InstructorCourseController::class, 'index']);
+        Route::get('/courses/{id}', [InstructorCourseController::class, 'show']);
+
         });
 
     // 6. مسارات الطلاب (Students)
