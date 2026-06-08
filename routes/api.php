@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Platform_learnova\NotificationController;
 use App\Http\Controllers\Admins\CategoryController;
 use App\Http\Controllers\Platform_learnova\AuthController;
 use App\Http\Controllers\Platform_learnova\ProfileController;
@@ -39,7 +40,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{id}', [ProfileController::class, 'update']);
     });
 
+Route::prefix('notifications')->controller(NotificationController::class)->group(function(){
+        Route::get('/','index');
+        Route::post('/mark-as-read', 'markAsRead');
+    });
+
+
     Route::post('/logout', [AuthController::class, 'logout']);
+
 
     // 3. مسارات الإدارة المطلقة (Super Admin Only)
     Route::middleware('role:super_admin')->group(function () {
