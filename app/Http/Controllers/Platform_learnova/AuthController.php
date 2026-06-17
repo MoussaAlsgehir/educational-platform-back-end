@@ -43,7 +43,7 @@ class AuthController extends Controller
 
         $user = User::create($validatedData);
 
-// إسناد الأدوار الافتراضية (طالب ومدرس)
+        // إسناد الأدوار الافتراضية (طالب ومدرس)
         $defaultRoles = Role::whereIn('name', ['student', 'instructor'])->pluck('id')->toArray();
         $user->roles()->attach($defaultRoles);
 
@@ -70,9 +70,26 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        if (Auth::attempt($request->only('email', 'password'))) {
-            $user = Auth::user();
 
+        // 1. التحقق من صحة الإيميل والباسورد
+        if (Auth::attempt($request->only('email', 'password'))) {
+        $user = Auth::user();
+
+            if ($user->roles()->whereIn('name', ['admin', 'super_admin'])->exists()) {
+
+                // إصدار التوكن فوراً للأدمن دون الحاجة لـ OTP
+                $token = $user->createToken('auth_token')->plainTextToken;
+
+                $data = [
+                    'user_information' => new UserResource($user),
+                    'token'            => $token,
+                    'redirect_to'      => 'dashboard' // توجيه الفرونت إند للوحة التحكم
+                ];
+
+                return ApiResource::sendResponse("Welcome back Admin. Login successful.", $data);
+            }
+
+            // 3. إذا كان مستخدماً عادياً (طالب / مدرس) -> نطبق آلية الـ OTP الخاصة بك
             $otpCode = (string) rand(100000, 999999);
             Otp::updateOrCreate(
                 ['user_id' => $user->id],
@@ -85,7 +102,10 @@ class AuthController extends Controller
 
             Mail::to($user->email)->send(new OtpMail($otpCode));
 
-            $data = ['user_information' => new UserResource($user)];
+            $data = [
+                'user_information' => new UserResource($user),
+                'redirect_to'      => 'otp_verification' // توجيه الفرونت إند لصفحة الـ OTP
+            ];
 
             return ApiResource::sendResponse("Login successful. Please check your email for OTP.", $data);
         }
