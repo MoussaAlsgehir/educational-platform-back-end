@@ -60,6 +60,22 @@ return [
             'report' => false,
         ],
 
+
+
+
+
+    'b2' => [
+        'driver' => 's3',
+        'key'    => env('BACKBLAZE_KEY_ID'),
+        'secret' => env('BACKBLAZE_APPLICATION_KEY'),
+        'region' => env('BACKBLAZE_REGION'),
+        'bucket' => env('BACKBLAZE_BUCKET_NAME'),
+        'endpoint' => 'https://s3.' . env('BACKBLAZE_REGION') . '.backblazeb2.com',
+        'use_path_style_endpoint' => true,
+    ],
+
+
+
     ],
 
     /*

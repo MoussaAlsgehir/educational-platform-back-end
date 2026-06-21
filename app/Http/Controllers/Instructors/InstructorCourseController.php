@@ -5,10 +5,12 @@ use App\Http\Controllers\Controller;
 use App\Helpers\ApiResource;
 use App\Models\Course;
 use Illuminate\Http\Request;
+use App\Http\Requests\CoursesRequest\CourseRequest;
 use App\Http\Requests\CoursesRequest\StoreCourseRequest;
 use App\Http\Resources\CourseResource;
 use App\Services\CourseService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use PHPUnit\TextUI\Help;
 
 class InstructorCourseController extends Controller
@@ -28,9 +30,14 @@ class InstructorCourseController extends Controller
 
 
 
-    public function store(StoreCourseRequest $request)
+    public function store(CourseRequest $request)
     {
-        $course = $this->courseService->createCourse($request->validated(),Auth::id());
+        $data=$request->validated();
+        if ($request->hasFile('cover_image')) {
+            $coverImagePath = $request->file('cover_image')->store('course_covers', 'public');
+           $data['cover_image'] = $coverImagePath;
+        }
+        $course = $this->courseService->createCourse($data, Auth::id());
 
         return ApiResource::sendResponse("Course created successfully.", new CourseResource($course),201);
 
@@ -39,10 +46,11 @@ class InstructorCourseController extends Controller
     /**
      * Display the specified course.
      */
-    public function show($id)
+    public function show(int $id)
     {
         //
         $course = Course::where('teacher_id', Auth::id())->findOrFail($id);
+
         return ApiResource::sendResponse("Course details retrieved successfully.", new CourseResource($course));
     }
 
@@ -53,7 +61,8 @@ class InstructorCourseController extends Controller
      */
     public function update()
     {
-        //
+
+
     }
 
     /**
@@ -61,6 +70,7 @@ class InstructorCourseController extends Controller
      */
     public function destroy(Course $course)
     {
+        Gate::authorize('delete',$course);
         $course->delete();
         return ApiResource::sendResponse("Course deleted successfully.");
     }

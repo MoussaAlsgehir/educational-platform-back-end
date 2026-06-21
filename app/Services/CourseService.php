@@ -18,12 +18,15 @@ class CourseService
             'end_date' => Carbon::parse($data['end_date'])->format('Y-m-d') ?? $data['end_date'] ?? now()->addMonths(3)->format('Y-m-d'),//تعيين تاريخ الانتهاء إلى 3 شهور من اليوم إذا لم يتم توفيره
             'certificate_attendance_threshold' => $data['certificate_attendance_threshold'] ?? 60,//تعيين نسبة الحضور المطلوبة للحصول على الشهادة إلى 60% إذا لم يتم توفير
             'status' => 'pending',
+            'cover_image' => $data['cover_image'] ?? null,
         ]);
 
         if (isset($data['category_ids'])) {
             $course->categories()->sync($data['category_ids']);
         }
+     
 
         return $course;
-    }
+
+}
 }
