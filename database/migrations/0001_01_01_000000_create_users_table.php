@@ -15,10 +15,10 @@ return new class extends Migration
             $table->id();
             $table->string('first_name');
             $table->string('last_name');
-            $table->string('phone');
-            $table->date('date_of_birth');
-            $table->string('education_level');
-            $table->string('avatar_url');
+            $table->string('phone')->nullable(); // الأدمن قد لا يحتاج لإدخاله فوراً
+            $table->date('date_of_birth')->nullable(); // nullable
+            $table->string('education_level')->nullable(); // nullable لأن الأدمن ليس طالباً
+            $table->string('avatar_url')->default('avatars/default-avatar.jpg'); // ضع لها قيمة افتراضية هنا مريحة
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

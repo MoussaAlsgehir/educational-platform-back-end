@@ -10,6 +10,7 @@ use App\Http\Controllers\Instructors\InstructorCourseController;
 use App\Http\Controllers\Instructors\LessonContentController;
 use App\Http\Controllers\Instructors\LessonController;
 use App\Http\Controllers\Instructors\SectionController;
+use App\Http\Controllers\Platform_learnova\AdminManagementController;
 use App\Http\Controllers\Students\StudentCourseController;
 use Illuminate\Support\Facades\Route;
 
@@ -54,12 +55,20 @@ Route::prefix('notifications')->controller(NotificationController::class)->group
 
 
     // 3. مسارات الإدارة المطلقة (Super Admin Only)
-    Route::middleware('role:super_admin')->group(function () {
-        Route::get('/roles', [RoleController::class, 'index']);
-        Route::post('/roles', [RoleController::class, 'store']);
-        Route::post('/roles/{id}', [RoleController::class, 'update']);
-        Route::post('/roles/{id}', [RoleController::class, 'destroy']);
-    });
+    Route::middleware('role:super_admin')
+        ->controller(RoleController::class)->group(function () {
+
+            Route::get('roles', 'index');
+            Route::post('roles', 'store');
+
+            Route::prefix('roles/{role}')->group(function () {
+                Route::post('update', 'update');
+                Route::post('destroy', 'destroy');
+            });
+
+        });
+
+    Route::post('admins', [AdminManagementController::class, 'store'])->middleware('role:super_admin');
 
     // 4. مسارات الإدارة المشتركة (Super Admin & Admin)
     Route::middleware('role:super_admin,admin')->group(function () {

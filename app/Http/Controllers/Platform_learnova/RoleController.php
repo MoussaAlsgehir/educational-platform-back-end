@@ -6,6 +6,7 @@ use App\Helpers\ApiResource;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\RoleResource;
 use App\Models\Role;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class RoleController extends Controller
@@ -61,4 +62,5 @@ class RoleController extends Controller
 
         return ApiResource::sendResponse("Role deleted successfully.");
     }
-}
+
+   }
