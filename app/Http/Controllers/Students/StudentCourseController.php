@@ -18,7 +18,7 @@ class StudentCourseController extends Controller
          return ApiResource::sendResponse("Courses retrieved successfully.", CourseResource::collection($courses));
     }
 
-    public function show( $id)
+    public function show($id)
     {
         $course = Course::with(['categories'])->findOrFail($id);
 

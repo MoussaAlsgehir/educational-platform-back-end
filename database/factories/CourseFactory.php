@@ -54,6 +54,7 @@ class CourseFactory extends Factory
             'status' => $status,
             'start_date' => $startDate->format('Y-m-d'),
             'end_date' => $endDate->format('Y-m-d'),
+            'cover_image' => fake()->imageUrl(640,480,'education'), // أو يمكنك وضع رابط لصورة افتراضية إذا أردت
         ];
     }
 }

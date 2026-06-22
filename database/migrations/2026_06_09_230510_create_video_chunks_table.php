@@ -11,12 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('lessons', function (Blueprint $table) {
+        Schema::create('video_chunks', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('section_id')->constrained('sections')->onDelete('cascade');
-            $table->string('title');
-            $table->integer('order')->default(1);
-            $table->boolean('is_preview')->default(false);// هل هذا الدرس متاح كمعاينة مجانية
+            $table->foreignId('lesson_id')->constrained('lessons')->onDelete('cascade');
+            $table->string('upload_session_id')->index();
+            $table->integer('chunk_index');
+            $table->integer('total_chunks');
+            $table->string('temporary_path');
             $table->timestamps();
         });
     }
@@ -26,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('lessons');
+        Schema::dropIfExists('video_chunks');
     }
 };

@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class CourseResource extends JsonResource
 {
@@ -30,6 +31,7 @@ class CourseResource extends JsonResource
             'start_date' => $this->start_date,
             'end_date' => $this->end_date,
             'certificate_attendance_threshold' => $this->certificate_attendance_threshold,
+            'cover_image' => $this->cover_image? asset(Storage::url($this->cover_image)) : null,
             'teacher' => new UserResource($this->teacher()->first()),
         ];
     }

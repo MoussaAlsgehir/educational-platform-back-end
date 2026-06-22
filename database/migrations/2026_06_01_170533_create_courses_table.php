@@ -20,6 +20,7 @@ return new class extends Migration
             $table->integer('certificate_attendance_threshold')->default(60);//نسبة الحضور المطلوبة للحصول على الشهادة
             $table->decimal('price', 10, 2)->default(0.00);
             $table->string('status')->default('pending'); // pending, active, rejected,upcoming ,completed
+            $table->string('cover_image')->nullable();
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();//تاريخ الدورة يحدد فترة تفاعل الاستاذ مع الطلاب
             $table->timestamps();

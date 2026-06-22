@@ -2,10 +2,14 @@
 
 use App\Http\Controllers\Platform_learnova\NotificationController;
 use App\Http\Controllers\Admins\CategoryController;
+use App\Http\Controllers\Instructors\ChunkUploadController;
 use App\Http\Controllers\Platform_learnova\AuthController;
 use App\Http\Controllers\Platform_learnova\ProfileController;
 use App\Http\Controllers\Platform_learnova\RoleController;
 use App\Http\Controllers\Instructors\InstructorCourseController;
+use App\Http\Controllers\Instructors\LessonContentController;
+use App\Http\Controllers\Instructors\LessonController;
+use App\Http\Controllers\Instructors\SectionController;
 use App\Http\Controllers\Platform_learnova\AdminManagementController;
 use App\Http\Controllers\Students\StudentCourseController;
 use Illuminate\Support\Facades\Route;
@@ -74,13 +78,39 @@ Route::prefix('notifications')->controller(NotificationController::class)->group
     });
 
     // 5. مسارات المدربين (Instructors)
-    Route::middleware('role:instructor')->prefix('instructor')->group(function () {
+    Route::middleware('role:instructor,super_admin')->prefix('instructor')->group(function () {
         // مسارات المدرسين
+        //course routes
         Route::post('/courses', [InstructorCourseController::class, 'store']);
+        Route::get('/courses', [InstructorCourseController::class, 'index']);
+        Route::get('/courses/{id}', [InstructorCourseController::class, 'show']);
+
+        //section routes
+            Route::get('courses/{courseId}/sections', [SectionController::class, 'index']);
+            Route::post('courses/{courseId}/sections', [SectionController::class, 'store']);
+            Route::get('courses/sections/{sectionId}', [SectionController::class, 'show']);
+            Route::put('courses/sections/{sectionId}', [SectionController::class, 'update']);
+            Route::delete('courses/sections/{sectionId}', [SectionController::class, 'destroy']);
+
+            //lesson routes
+            Route::get('sections/{sectionId}/lessons', [LessonController::class, 'index']);
+            Route::post('sections/{sectionId}/lessons', [LessonController::class, 'store']);
+            Route::get('sections/lessons/{lessonId}', [LessonController::class, 'show']);
+            Route::put('sections/lessons/{lessonId}', [LessonController::class, 'update']);
+            Route::delete('sections/lessons/{lessonId}', [LessonController::class, 'destroy']);
+
+            //lesson content routes
+            Route::post('lessons/{lessonId}/contents', [LessonContentController::class, 'store']);
+            Route::put('lessons/contents/{contentId}', [LessonContentController::class, 'update']);
+            Route::delete('lessons/contents/{contentId}', [LessonContentController::class, 'destroy']);
+
+            //upload routes
+            Route::get('lessons/{lessonId}/upload-vedio/progress', [ChunkUploadController::class, 'checkProgress']);
+            Route::post('lessons/{lessonId}/upload-vedio', [ChunkUploadController::class, 'uploadChunk']);
         });
 
     // 6. مسارات الطلاب (Students)
-    Route::middleware('role:student')->prefix('student')->group(function () {
+    Route::middleware('role:student,super_admin')->prefix('student')->group(function () {
         // مسارات الطلاب
         Route::get('/categories', [CategoryController::class, 'index']);//عرض التصنيفات للطلاب
         Route::get('/courses', [StudentCourseController::class, 'index']);//عرض الدورات المتاحة للطلاب
