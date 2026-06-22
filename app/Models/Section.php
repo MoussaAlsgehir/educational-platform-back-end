@@ -28,4 +28,9 @@ class Section extends Model
     {
         return $this->hasMany(Lesson::class, 'section_id')->orderBy('order','asc');
     }
+
+
+    public function quiz(){
+return $this->hasOne(Quizz::class);
+    }
 }
