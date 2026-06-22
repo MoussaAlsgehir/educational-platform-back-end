@@ -34,6 +34,7 @@ Route::middleware('guest_api')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth:sanctum')->group(function () {
+    
 
     // الملف الشخصي
     Route::prefix('profile')->group(function () {
