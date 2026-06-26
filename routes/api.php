@@ -11,6 +11,7 @@ use App\Http\Controllers\Instructors\LessonContentController;
 use App\Http\Controllers\Instructors\LessonController;
 use App\Http\Controllers\Instructors\SectionController;
 use App\Http\Controllers\Platform_learnova\AdminManagementController;
+use App\Http\Controllers\Platform_learnova\QuizzController;
 use App\Http\Controllers\Students\StudentCourseController;
 use Illuminate\Support\Facades\Route;
 
@@ -47,6 +48,7 @@ Route::middleware('guest_api')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth:sanctum')->group(function () {
+
 
     // الملف الشخصي
     Route::prefix('profile')->group(function () {
@@ -85,6 +87,11 @@ Route::prefix('notifications')->controller(NotificationController::class)->group
         Route::apiResource('categories', CategoryController::class);
     });
 
+
+
+
+
+
     // 5. مسارات المدربين (Instructors)
     Route::middleware('role:instructor,super_admin')->prefix('instructor')->group(function () {
         // مسارات المدرسين
@@ -117,6 +124,21 @@ Route::prefix('notifications')->controller(NotificationController::class)->group
             Route::post('lessons/{lessonId}/upload-vedio', [ChunkUploadController::class, 'uploadChunk']);
         });
 
+    Route::middleware('role:instructor,super_admin,admin')->prefix('sections')->controller(QuizzController::class)->group(function () {
+        Route::post('{sectionId}/quizzs', 'store');
+
+        Route::prefix('quizzs/{quizz}')->group(function () {
+            Route::post('/update', 'update');
+            Route::post('/delete', 'destroy');
+        });
+    });
+
+    Route::middleware('role:student,instructor,super_admin,admin')->prefix('sections')->controller(QuizzController::class)->group(function () {
+        Route::get('{sectionId}/quizzs', 'index');
+        Route::prefix('quizzs/{quizz}')->group(function () {
+            Route::get('/', 'show');
+        });
+    });
     // 6. مسارات الطلاب (Students)
     Route::middleware('role:student')->prefix('student')->group(function () {
 
