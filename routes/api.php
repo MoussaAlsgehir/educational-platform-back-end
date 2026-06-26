@@ -29,6 +29,15 @@ Route::middleware('guest_api')->group(function () {
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/check-forgot-otp', [AuthController::class, 'checkOtpForgotPassword']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+
+    // 4. مسارات الزوار والمتصفحين فقط
+        Route::prefix('student')->group(function () {
+
+        Route::get('/categories', [CategoryController::class, 'index']);//عرض التصنيفات للطلاب
+        Route::get('/courses', [StudentCourseController::class, 'index']);//عرض الدورات المتاحة للطلاب
+        Route::get('/courses/category/{id}', [StudentCourseController::class, 'showByCategory']);//عرض الدورات حسب التصنيف
+        Route::get('/courses/{id}', [StudentCourseController::class, 'show']);//عرض تفاصيل دورة معينة للطلاب
+    });
 });
 
 
@@ -109,11 +118,9 @@ Route::prefix('notifications')->controller(NotificationController::class)->group
         });
 
     // 6. مسارات الطلاب (Students)
-    Route::middleware('role:student,super_admin')->prefix('student')->group(function () {
-        // مسارات الطلاب
-        Route::get('/categories', [CategoryController::class, 'index']);//عرض التصنيفات للطلاب
-        Route::get('/courses', [StudentCourseController::class, 'index']);//عرض الدورات المتاحة للطلاب
-        Route::get('/courses/category/{id}', [StudentCourseController::class, 'showByCategory']);//عرض الدورات حسب التصنيف
-        Route::get('/courses/{id}', [StudentCourseController::class, 'show']);//عرض تفاصيل دورة معينة للطلاب
+    Route::middleware('role:student')->prefix('student')->group(function () {
+
     });
+
+
 });

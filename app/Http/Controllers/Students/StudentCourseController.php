@@ -18,14 +18,14 @@ class StudentCourseController extends Controller
          return ApiResource::sendResponse("Courses retrieved successfully.", CourseResource::collection($courses));
     }
 
-    public function show($id)
+    public function show(int $id)
     {
         $course = Course::with(['categories'])->findOrFail($id);
 
         return ApiResource::sendResponse("Course retrieved successfully.", new CourseResource($course));
     }
 
-    public function showByCategory($category_id)
+    public function showByCategory(int $category_id)
     {
         $courses = Course::whereHas('categories', function ($query) use ($category_id) {
             $query->where('categories.id', $category_id);
