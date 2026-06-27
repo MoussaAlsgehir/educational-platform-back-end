@@ -11,6 +11,7 @@ use App\Http\Controllers\Instructors\LessonContentController;
 use App\Http\Controllers\Instructors\LessonController;
 use App\Http\Controllers\Instructors\SectionController;
 use App\Http\Controllers\Platform_learnova\AdminManagementController;
+use App\Http\Controllers\Platform_learnova\QuestionController;
 use App\Http\Controllers\Platform_learnova\QuizzController;
 use App\Http\Controllers\Students\StudentCourseController;
 use Illuminate\Support\Facades\Route;
@@ -138,4 +139,16 @@ Route::prefix('notifications')->controller(NotificationController::class)->group
         Route::get('/courses/category/{id}', [StudentCourseController::class, 'showByCategory']);//عرض الدورات حسب التصنيف
         Route::get('/courses/{id}', [StudentCourseController::class, 'show']);//عرض تفاصيل دورة معينة للطلاب
     });
+
+
+
+Route::prefix('questions')->controller(QuestionController::class)->group(function () {
+    Route::get('/', 'index')->middleware('role:student,admin');
+    Route::get('{id}', 'show')->middleware('role:student,admin');
+    Route::post('/', 'store');
+    Route::post('{id}/update','update');
+    Route::post('{id}/delete', 'destroy');
+})->middleware('role:instructor,super_admin');
+
+
 });
