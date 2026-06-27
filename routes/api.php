@@ -6,7 +6,6 @@ use App\Http\Controllers\Platform_learnova\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 /* --- 1. مسارات الزوار غير المسجلين --- */
-
 require __DIR__ . '/api/auth.php';
 
 /* --- 2. مسارات المحمية بـ Sanctum (المشتركة) --- */
@@ -19,7 +18,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // الإشعارات
-    Route::prefix('notifications')->controller(NotificationController::class)->group(function () {
+    Route::prefix('notifications')->controller(NotificationController::class)->group(function(){
         Route::get('/', 'index');
         Route::post('/mark-as-read', 'markAsRead');
     });
@@ -31,4 +30,5 @@ Route::middleware('auth:sanctum')->group(function () {
     require __DIR__ . '/api/admin.php';
     require __DIR__ . '/api/instructor.php';
     require __DIR__ . '/api/student.php';
+
 });
