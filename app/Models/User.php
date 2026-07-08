@@ -49,7 +49,7 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Role::class, 'role_user');
     }
-public function reviews()
+    public function reviews()
     {
         return $this->hasMany(CourseReview::class, 'student_id');
     }
@@ -64,6 +64,7 @@ public function reviews()
 
     /**
      * الفحص إذا كان المستخدم يملك أي دور من قائمة أدوار معينة
+     * @param array $roles قائمة الأدوار للتحقق منها
      */
     public function hasAnyRole(array $roles): bool
     {
@@ -85,4 +86,9 @@ public function reviews()
     {
         return "{$this->first_name} {$this->last_name}";
     }
+
+    public function studentAttempts()
+    {
+        return $this->hasMany(StudentAttempt::class, 'student_id');
     }
+}
