@@ -91,4 +91,24 @@ class User extends Authenticatable
     {
         return $this->hasMany(StudentAttempt::class, 'student_id');
     }
-}
+
+    public function courses()
+    {
+        return $this->belongsToMany(Course::class, 'student_enrollments_course', 'student_id', 'course_id')
+            ->withPivot(['attendance_percentage', 'is_completed'])
+            ->withTimestamps();
+    }
+
+
+    public function lessonProgress()
+    {
+        return $this->hasMany(LessonProgress::class, 'student_id');
+    }
+
+    // app/Models/User.php
+
+    public function certificates()
+    {
+        return $this->hasMany(Certificate::class, 'student_id');
+    }
+    }

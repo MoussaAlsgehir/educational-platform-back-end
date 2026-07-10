@@ -31,27 +31,27 @@ class Course extends Model
     ];
 
 
-    public function categories() : BelongsToMany
+    public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class, 'category_course');
     }
 
-    public function sections() : HasMany
+    public function sections(): HasMany
     {
         return $this->hasMany(Section::class);
     }
 
-    public function teacher() : BelongsTo
+    public function teacher(): BelongsTo
     {
         return $this->belongsTo(User::class, 'teacher_id');
     }
 
-    public function lessons() : HasManyThrough
+    public function lessons(): HasManyThrough
     {
         return $this->hasManyThrough(Lesson::class, Section::class, 'course_id', 'section_id');
     }
 
-    public function attachments() : HasMany
+    public function attachments(): HasMany
     {
         return $this->hasMany(CourseAttachment::class);
     }
@@ -61,4 +61,17 @@ class Course extends Model
         return $this->hasMany(CourseReview::class, 'course_id');
     }
 
+
+    public function students()
+    {
+        return $this->belongsToMany(User::class, 'student_enrollments_course', 'course_id', 'student_id')
+            ->withPivot(['attendance_percentage', 'is_completed'])
+            ->withTimestamps();
+    }
+
+
+    public function certificates()
+    {
+        return $this->hasMany(Certificate::class, 'course_id');
+    }
 }
