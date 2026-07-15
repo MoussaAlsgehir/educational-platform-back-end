@@ -33,4 +33,10 @@ class Lesson extends Model
     {
         return $this->hasMany(LessonContent::class)->orderBy('order', 'asc');
     }
+
+
+    public function studentProgress()
+    {
+        return $this->hasMany(LessonProgress::class, 'lesson_id');
+    }
 }

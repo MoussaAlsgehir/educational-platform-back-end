@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admins\CategoryController;
+use App\Http\Controllers\Platform_learnova\LessonProgressController;
 use App\Http\Controllers\Students\StudentCourseController;
 use App\Http\Controllers\Platform_learnova\QuizzController;
 use App\Http\Controllers\Platform_learnova\QuestionController;
@@ -43,4 +44,21 @@ Route::middleware('role:student,super_admin')->prefix('student/attempts')->contr
 Route::prefix('questions')->controller(QuestionController::class)->group(function () {
     Route::get('/', 'index')->middleware('role:student,admin');
     Route::get('{id}', 'show')->middleware('role:student,admin');
+});
+
+
+
+Route::middleware('role:student,super_admin')->prefix('student')->group(function () {
+
+    // جلب حالة التقدم لدرس معين
+    Route::get('/lesson/{lessonId}/progress', [LessonProgressController::class, 'getProgress']);
+
+    // تحديث وقت المشاهدة أو وضع الدرس كمكتمل
+    Route::post('/lesson/{lessonId}/progress', [LessonProgressController::class, 'updateProgress']);
+
+    // وضع الدرس كمكتمل يدوياً
+    Route::post('/lesson/{lessonId}/complete', [LessonProgressController::class, 'markAsCompleted']);
+
+    // إعادة تعيين (حذف) تقدم الدرس
+    Route::delete('/lesson/{lessonId}/progress', [LessonProgressController::class, 'resetProgress']);
 });
