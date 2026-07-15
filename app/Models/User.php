@@ -49,7 +49,10 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Role::class, 'role_user');
     }
-
+    public function reviews()
+    {
+        return $this->hasMany(CourseReview::class, 'student_id');
+    }
 
     /**
      * الفحص إذا كان المستخدم يملك دوراً معيناً
@@ -61,6 +64,7 @@ class User extends Authenticatable
 
     /**
      * الفحص إذا كان المستخدم يملك أي دور من قائمة أدوار معينة
+     * @param array $roles قائمة الأدوار للتحقق منها
      */
     public function hasAnyRole(array $roles): bool
     {
@@ -73,5 +77,18 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->hasRole('admin') || $this->hasRole('super_admin');
+    }
+
+    /**
+     * جلب الاسم الكامل للمستخدم تلقائياً
+     */
+    public function getNameAttribute(): string
+    {
+        return "{$this->first_name} {$this->last_name}";
+    }
+
+    public function studentAttempts()
+    {
+        return $this->hasMany(StudentAttempt::class, 'student_id');
     }
 }

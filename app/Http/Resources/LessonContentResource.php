@@ -27,6 +27,7 @@ class LessonContentResource extends JsonResource
             ]),
 
             // 3. حقول تظهر فـقـط إذا كان المحتوى فيديو (video)
+            
             $this->mergeWhen($this->type === 'video', [
                 'duration'     => $this->duration,
                 'playback_url' => $this->generateCloudflareWorkerUrl(), // 🔥 الرابط السحري الجديد

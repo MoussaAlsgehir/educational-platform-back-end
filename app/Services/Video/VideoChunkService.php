@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Video;
 
 use App\Models\Lesson;
 use App\Models\VideoChunk;
@@ -25,7 +25,7 @@ class VideoChunkService
     /**
      * معالجة القطعة المرفوعة وتخزينها، وتجميعها إن اكتملت
      */
-    public function handleChunk(string $sessionId, int $chunkIndex, int $totalChunks, UploadedFile $file, Lesson $lesson): ?LessonContent
+    public function handleChunk(string $sessionId, int $chunkIndex, int $totalChunks, bool $is_full_hd, UploadedFile $file, Lesson $lesson): ?LessonContent
     {
         // 1. تخزين القطعة محلياً
         $temporaryFolder = "chunks/{$sessionId}";
@@ -55,6 +55,7 @@ class VideoChunkService
                 'status'      => 'processing',
                 'storage_key' => null,
                 'order'       => $nextOrder,
+                'is_full_hd'  => $is_full_hd,
             ]);
 
 

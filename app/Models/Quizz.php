@@ -38,4 +38,12 @@ class Quizz extends Model
     {
         return $this->belongsTo(Section::class);
     }
+    public function questions(){
+        return $this->hasMany(Question::class);
+    }
+
+    public function studentAttempts()
+    {
+        return $this->hasMany(StudentAttempt::class, 'quiz_id');
+    }
 }

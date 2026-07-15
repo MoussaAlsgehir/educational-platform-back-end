@@ -62,8 +62,8 @@ class CourseSeeder extends Seeder
             'title' => 'Intro Video Playback',
             'order' => 1,
             'status' => 'ready', // مهمة جداً عشان دالة الـ Resource ما ترجع null
-            'duration' => 11,   // مدة الفيديو بالثواني مثلاً
-            'storage_key' => 'courses/videos/lesson_1/content_4/master.m3u8', // مسار الـ HLS بقلب السحابة
+            'duration' => 325,   // مدة الفيديو بالثواني مثلاً
+            'storage_key' => 'videos/lessonContent_22/master.m3u8', // مسار الـ HLS بقلب السحابة
         ]);
 
 
@@ -79,10 +79,20 @@ class CourseSeeder extends Seeder
             'lesson_id' => $lesson2->id,
             'type' => 'text_article',
             'title' => 'Required Software and Hardware Specifications',
-            'order' => 1,
+            'order' => 2,
             'status' => 'ready',
             'text_value' => 'In this section, make sure you have PHP 8.2+, Node.js, and VS Code installed. You will also need a local database server like MySQL or SQL Server Express configured.',
         ]);
+          LessonContent::create([
+            'lesson_id' => $lesson2->id,
+            'type' => 'video',
+            'title' => 'Short Video Playback',
+            'order' => 1,
+            'status' => 'ready', // مهمة جداً عشان دالة الـ Resource ما ترجع null
+            'duration' => 15,   // مدة الفيديو بالثواني مثلاً
+            'storage_key' => '/videos/lessonContent_29/master.m3u8', // مسار الـ HLS بقلب السحابة
+        ]);
+
 
 
         // --- الدرس الثالث: محتوى ملف مرفق (PDF) ---

@@ -34,5 +34,10 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+      'ffmpeg' => [
+    'ffmpeg_path'  => env('FFMPEG_PATH', 'C:/ffmpeg/bin/ffmpeg.exe'),
+    'ffprobe_path' => env('FFPROBE_PATH', 'C:/ffmpeg/bin/ffprobe.exe'),
+],
+
 
 ];

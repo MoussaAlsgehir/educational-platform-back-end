@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Instructors;
 
 use App\Http\Controllers\Controller;
 use App\Models\Lesson;
-use App\Services\VideoChunkService;
+use App\Services\Video\VideoChunkService;
 use App\Helpers\ApiResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -48,6 +48,7 @@ class ChunkUploadController extends Controller
             'chunk_index'       => 'required|integer|min:0',
             'total_chunks'      => 'required|integer|min:1',
             'file'              => 'required|file|max:15360',
+            'is_full_hd'        => 'required|boolean'
         ]);
 
         $lesson = Lesson::findOrFail($lessonId);
@@ -59,6 +60,7 @@ class ChunkUploadController extends Controller
             $request->upload_session_id,
             $request->chunk_index,
             $request->total_chunks,
+            $request->is_full_hd,
             $request->file('file'),
             $lesson
         );

@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\LessonContent;
-use App\Services\VideoProcessingService;
+use App\Services\Video\VideoProcessingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -16,93 +16,140 @@ class ProcessVideoHlsJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
-     * مهلة تشغيل الـ Job بالثواني (ساعة كاملة)
+     * مهلة تشغيل الـ Job بالثواني
      */
-    public $timeout = 3600;
+    public int $timeout = 3600;
 
     /**
-     * عدد المحاولات لإعادة التشغيل في حال حدوث خطأ مؤقت في الشبكة مع Backblaze B2
+     * عدد المحاولات في حال الفشل المؤقت
      */
-    public $tries = 3;
+    public int $tries = 3;
 
     /**
-     * عدد الثواني للانتظار بين المحاولات
+     * وقت الانتظار بين المحاولات
      */
-    public $backoff = 30;
+    public int $backoff = 30;
 
-    protected LessonContent $lessonContent;
+    protected int $lessonContentId;
     protected string $mp4Path;
+    protected LessonContent $lessonContent;
+
 
     public function __construct(LessonContent $lessonContent, string $mp4Path)
     {
+        $this->lessonContentId = $lessonContent->id;
         $this->lessonContent = $lessonContent;
         $this->mp4Path = $mp4Path;
     }
 
-    public function handle()
+
+    /**
+     * تنفيذ معالجة الفيديو
+     */
+    public function handle(VideoProcessingService $processingService): void
     {
-        Log::info("🏃‍♂️ [Job] تم بدء تشغيل الـ Job لمعالجة الفيديو رقم: {$this->lessonContent->id}");
+        $lessonContent = LessonContent::findOrFail($this->lessonContentId);
 
-        // تحديث الحالة إلى قيد المعالجة لضمان عدم التكرار
-        $this->lessonContent->update(['status' => 'processing']);
-
-        // استدعاء السيرفس وحقنها يدوياً بقلب الـ handle
-        $processingService = app(VideoProcessingService::class);
+        Log::info(
+            "🏃 [Video Job] بدء معالجة الفيديو رقم: {$lessonContent->id}"
+        );
 
         try {
-            $processingService->convertMp4ToHls($this->lessonContent, $this->mp4Path);
-        } catch (\Exception $e) {
-            Log::error("❌ كراش بالـ Job أثناء المعالجة للسجل {$this->lessonContent->id}: " . $e->getMessage());
 
-            // نحدث الحالة إلى فشل مبدئياً، ونرمي الاستثناء ليقوم الـ Queue بجدولته للمحاولة التالية
-            $this->lessonContent->update(['status' => 'failed']);
+            // منع أي تكرار في حالة إعادة تشغيل الـ Job
+            $lessonContent->update([
+                'status' => 'processing'
+            ]);
+
+
+            $processingService->convertMp4ToHls(
+                $lessonContent,
+                $this->mp4Path
+            );
+
+
+            Log::info(
+                "✅ [Video Job] انتهت معالجة الفيديو بنجاح: {$lessonContent->id}"
+            );
+
+
+        } catch (\Throwable $e) {
+
+            Log::error(
+                "❌ [Video Job] فشل معالجة الفيديو {$lessonContent->id}: "
+                . $e->getMessage()
+            );
+
+            // لا نضع failed هنا
+            // Laravel سيعيد المحاولة حسب tries
             throw $e;
         }
     }
 
+
     /**
-     * 🔥 الحصن المنيع: يتم استدعاؤها تلقائياً إذا فشل الـ Job تماماً بعد استنفاذ الـ 3 محاولات
+     * يتم استدعاؤها فقط بعد فشل جميع المحاولات
      */
-    public function failed(\Throwable $exception): void
-    {
-        Log::error("🚨 [Job Failed] الـ Job مات نهائياً للسجل: {$this->lessonContent->id}. السبب: " . $exception->getMessage());
+public function failed(\Throwable $exception): void
+{
+    Log::error("[Job Failed] Video processing failed", [
+        'lesson_content_id' => $this->lessonContentId,
+        'error' => $exception->getMessage(),
+    ]);
 
-        // 1. التأكيد على حالة الفشل في قاعدة البيانات
-        $this->lessonContent->update(['status' => 'failed']);
+    // 1. تحديث الداتابيز إنه فشل
+    $this->lessonContent->update(['status' => 'failed']);
 
-        // 2. التنظيف الفوري للهارد المحلي منعاً لتكدس الفيديوهات العالقة
-        if (file_exists($this->mp4Path)) {
-            unlink($this->mp4Path);
-        }
-
-        // مسح مجلد الـ HLS المؤقت التابع للسجل لتظل المساحة فارغة
-        $hlsFolder = "hls_temp" . DIRECTORY_SEPARATOR . "lessonContent_{$this->lessonContent->id}";
-        $localHlsPath = storage_path("app" . DIRECTORY_SEPARATOR . "private" . DIRECTORY_SEPARATOR . "{$hlsFolder}");
-
-        if (file_exists($localHlsPath)) {
-            $this->cleanLocalDirectory($localHlsPath);
-        }
-
-        Log::info("🧹 [Job Failed] تم تنظيف السيرفر المحلي بالكامل وحماية مساحة التخزين.");
+    // 2. حذف الفيديو الأصلي (MP4) إذا موجود
+    if (isset($this->mp4Path) && file_exists($this->mp4Path)) {
+        unlink($this->mp4Path);
+        Log::warning("[Cleanup] Deleted original MP4 due to failure: {$this->mp4Path}");
     }
 
+    // 3. حذف مجلد الـ HLS المؤقت إذا كان انشأ قبل ما يفشل
+    $hlsFolder = storage_path("app/private/hls_temp/lessonContent_{$this->lessonContentId}");
+    if (is_dir($hlsFolder)) {
+        $this->deleteDirectory($hlsFolder); // أنت عندك دالة deleteDirectory جاهزة بنفس الملف
+        Log::warning("[Cleanup] Deleted HLS temp folder due to failure: {$hlsFolder}");
+    }
+}
+
     /**
-     * دالة مساعدة لتفريغ وحذف المجلد المؤقت في حالة الفشل النهائي
+     * حذف فولدر كامل مع محتوياته
      */
-    private function cleanLocalDirectory(string $dir): void
+    private function deleteDirectory(string $directory): void
     {
-        if (!file_exists($dir)) return;
+        if (!is_dir($directory)) {
+            return;
+        }
 
-        foreach (scandir($dir) as $item) {
-            if ($item == '.' || $item == '..') continue;
 
-            $path = $dir . DIRECTORY_SEPARATOR . $item;
+        $items = scandir($directory);
+
+
+        foreach ($items as $item) {
+
+            if ($item === '.' || $item === '..') {
+                continue;
+            }
+
+
+            $path = $directory
+                . DIRECTORY_SEPARATOR
+                . $item;
+
+
             if (is_dir($path)) {
-                $this->cleanLocalDirectory($path);
+
+                $this->deleteDirectory($path);
+
             } else {
+
                 unlink($path);
             }
         }
-        rmdir($dir);
+
+
+        rmdir($directory);
     }
 }

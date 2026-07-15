@@ -1,54 +1,19 @@
 <?php
 
-use App\Http\Controllers\Platform_learnova\NotificationController;
-use App\Http\Controllers\Admins\CategoryController;
-use App\Http\Controllers\Instructors\ChunkUploadController;
+use App\Http\Controllers\Students\DownloadController;
 use App\Http\Controllers\Platform_learnova\AuthController;
+use App\Http\Controllers\Platform_learnova\NotificationController;
 use App\Http\Controllers\Platform_learnova\ProfileController;
-use App\Http\Controllers\Platform_learnova\RoleController;
-use App\Http\Controllers\Instructors\InstructorCourseController;
-use App\Http\Controllers\Instructors\LessonContentController;
-use App\Http\Controllers\Instructors\LessonController;
-use App\Http\Controllers\Instructors\SectionController;
-use App\Http\Controllers\Platform_learnova\AdminManagementController;
-use App\Http\Controllers\Platform_learnova\QuizzController;
-use App\Http\Controllers\Students\StudentCourseController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| 1. مسارات الزوار والمتصفحين فقط (Guest Only Routes)
-|--------------------------------------------------------------------------
-| تم تطبيق ميدلواير guest_api هنا لمنع المسجلين من تكرار طلبات الدخول أو إنشاء الحسابات
-*/
+/* --- 1. مسارات الزوار غير المسجلين --- */
+require __DIR__ . '/api/auth.php';
+require __DIR__ . '/api/visitor.php';
 
-Route::middleware('guest_api')->group(function () {
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/verify-otp', [AuthController::class, 'verificationCode']);
-
-    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
-    Route::post('/check-forgot-otp', [AuthController::class, 'checkOtpForgotPassword']);
-    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
-
-    // 4. مسارات الزوار والمتصفحين فقط
-        Route::prefix('student')->group(function () {
-
-        Route::get('/categories', [CategoryController::class, 'index']);//عرض التصنيفات للطلاب
-        Route::get('/courses', [StudentCourseController::class, 'index']);//عرض الدورات المتاحة للطلاب
-        Route::get('/courses/category/{id}', [StudentCourseController::class, 'showByCategory']);//عرض الدورات حسب التصنيف
-        Route::get('/courses/{id}', [StudentCourseController::class, 'show']);//عرض تفاصيل دورة معينة للطلاب
-    });
-});
-
-
-/*
-|--------------------------------------------------------------------------
-| 2. مسارات محمية (تتطلب تسجيل دخول بـ Sanctum Token)
-|--------------------------------------------------------------------------
-*/
+Route::get('/download-link/{contentId}', [DownloadController::class, 'generateLink'])
+      ->middleware(['auth:sanctum', 'role:student,super_admin']);
+/* --- 2. مسارات المحمية بـ Sanctum (المشتركة) --- */
 Route::middleware('auth:sanctum')->group(function () {
-
 
     // الملف الشخصي
     Route::prefix('profile')->group(function () {
@@ -56,93 +21,19 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{id}', [ProfileController::class, 'update']);
     });
 
-Route::prefix('notifications')->controller(NotificationController::class)->group(function(){
-        Route::get('/','index');
+    // الإشعارات
+    Route::prefix('notifications')->controller(NotificationController::class)->group(function(){
+        Route::get('/', 'index');
         Route::post('/mark-as-read', 'markAsRead');
     });
 
-
+    // تسجيل الخروج
     Route::post('/logout', [AuthController::class, 'logout']);
 
-
-    // 3. مسارات الإدارة المطلقة (Super Admin Only)
-    Route::middleware('role:super_admin')
-        ->controller(RoleController::class)->group(function () {
-
-            Route::get('roles', 'index');
-            Route::post('roles', 'store');
-
-            Route::prefix('roles/{role}')->group(function () {
-                Route::post('update', 'update');
-                Route::post('destroy', 'destroy');
-            });
-
-        });
-
-    Route::post('admins', [AdminManagementController::class, 'store'])->middleware('role:super_admin');
-
-    // 4. مسارات الإدارة المشتركة (Super Admin & Admin)
-    Route::middleware('role:super_admin,admin')->group(function () {
-        // مسارات التحكم المشترك
-        Route::apiResource('categories', CategoryController::class);
-    });
-
-
-
-
-
-
-    // 5. مسارات المدربين (Instructors)
-    Route::middleware('role:instructor,super_admin')->prefix('instructor')->group(function () {
-        // مسارات المدرسين
-        //course routes
-        Route::post('/courses', [InstructorCourseController::class, 'store']);
-        Route::get('/courses', [InstructorCourseController::class, 'index']);
-        Route::get('/courses/{id}', [InstructorCourseController::class, 'show']);
-
-        //section routes
-            Route::get('courses/{courseId}/sections', [SectionController::class, 'index']);
-            Route::post('courses/{courseId}/sections', [SectionController::class, 'store']);
-            Route::get('courses/sections/{sectionId}', [SectionController::class, 'show']);
-            Route::put('courses/sections/{sectionId}', [SectionController::class, 'update']);
-            Route::delete('courses/sections/{sectionId}', [SectionController::class, 'destroy']);
-
-            //lesson routes
-            Route::get('sections/{sectionId}/lessons', [LessonController::class, 'index']);
-            Route::post('sections/{sectionId}/lessons', [LessonController::class, 'store']);
-            Route::get('sections/lessons/{lessonId}', [LessonController::class, 'show']);
-            Route::put('sections/lessons/{lessonId}', [LessonController::class, 'update']);
-            Route::delete('sections/lessons/{lessonId}', [LessonController::class, 'destroy']);
-
-            //lesson content routes
-            Route::post('lessons/{lessonId}/contents', [LessonContentController::class, 'store']);
-            Route::put('lessons/contents/{contentId}', [LessonContentController::class, 'update']);
-            Route::delete('lessons/contents/{contentId}', [LessonContentController::class, 'destroy']);
-
-            //upload routes
-            Route::get('lessons/{lessonId}/upload-vedio/progress', [ChunkUploadController::class, 'checkProgress']);
-            Route::post('lessons/{lessonId}/upload-vedio', [ChunkUploadController::class, 'uploadChunk']);
-        });
-
-    Route::middleware('role:instructor,super_admin,admin')->prefix('sections')->controller(QuizzController::class)->group(function () {
-        Route::post('{sectionId}/quizzs', 'store');
-
-        Route::prefix('quizzs/{quizz}')->group(function () {
-            Route::post('/update', 'update');
-            Route::post('/delete', 'destroy');
-        });
-    });
-
-    Route::middleware('role:student,instructor,super_admin,admin')->prefix('sections')->controller(QuizzController::class)->group(function () {
-        Route::get('{sectionId}/quizzs', 'index');
-        Route::prefix('quizzs/{quizz}')->group(function () {
-            Route::get('/', 'show');
-        });
-    });
-    // 6. مسارات الطلاب (Students)
-    Route::middleware('role:student')->prefix('student')->group(function () {
-
-    });
+    /* --- 3. استدعاء بقية الملفات المفصولة داخل الميدلواير المحمي --- */
+    require __DIR__ . '/api/admin.php';
+    require __DIR__ . '/api/instructor.php';
+    require __DIR__ . '/api/student.php';
 
 
 });

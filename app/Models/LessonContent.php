@@ -19,7 +19,8 @@ class LessonContent extends Model
         'duration',
         'storage_key',
         'status',
-        'order'
+        'order',
+        'is_full_hd'
     ];
     //ثابتات لحالات الوسائط لتجنب الأخطاء الإملائية في الكود
     public const STATUS_PENDING    = 'pending';

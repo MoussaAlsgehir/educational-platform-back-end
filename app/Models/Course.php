@@ -56,4 +56,9 @@ class Course extends Model
         return $this->hasMany(CourseAttachment::class);
     }
 
+    public function reviews()
+    {
+        return $this->hasMany(CourseReview::class, 'course_id');
+    }
+
 }

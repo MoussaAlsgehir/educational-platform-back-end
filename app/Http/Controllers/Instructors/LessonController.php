@@ -30,14 +30,18 @@ protected $lessonService;
         $section = Section::findOrFail($sectionId);
 
         // Eager loading للمحتويات (contents) لتقليل ريكويستات قاعدة البيانات N+1
-        $lessons = $section->lessons()->orderBy('order', 'asc')->with('contents')->paginate(9);
+        $lessons = $section->lessons()->orderBy('order', 'asc')->paginate(9);
 
         return ApiResource::sendResponse("Lessons retrieved successfully.", LessonResource::collection($lessons));
     }
 
     public function show(int $lessonId)
     {
-        $lesson = Lesson::with('contents')->findOrFail($lessonId);
+        $lesson = Lesson::with(['contents' => function ($query) {
+            $query->where(function ($q) {
+            $q->where('type', '!=', 'video')->orWhere('status', 'ready');
+             })->orderBy('order', 'asc');
+             }])->findOrFail($lessonId);
         return ApiResource::sendResponse("Lesson retrieved successfully.", new LessonResource($lesson));
     }
 
