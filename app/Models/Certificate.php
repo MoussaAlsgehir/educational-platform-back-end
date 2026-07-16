@@ -16,6 +16,15 @@ class Certificate extends Model
     // تحديد الحقول التي هي عبارة عن تواريخ (لتسهيل التعامل معها كـ Carbon Objects)
     protected $dates = ['issued_at'];
 
+    // الحقول التي يجب الحفاظ على قيمها
+    protected $fillable = [
+        'student_id',
+        'course_id',
+        'certificate_url',
+        'serial_number',
+        'issued_at',
+    ];
+
     // العلاقة مع الطالب
     public function student(): BelongsTo
     {
