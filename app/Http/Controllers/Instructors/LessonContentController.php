@@ -28,10 +28,10 @@ class LessonContentController extends Controller
      */
     public function store(LessonContentRequest $request, int $lessonId)
     {
-        $lesson = Lesson::findOrFail($lessonId);
+        $lesson = Lesson::with('section.course')->findOrFail($lessonId);
 
         // حماية الأمن: التأكد أن المدرس يملك الكورس الذي يتبع له هذا الدرس
-        Gate::authorize('update',$lesson->course);
+        Gate::authorize('update',$lesson->section->course);
 
 
         $content = $this->contentService->createContent(

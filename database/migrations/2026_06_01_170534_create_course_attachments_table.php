@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('course_attachments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('course_id')->constrained('courses')->onDelete('cascade');
+            $table->foreignId('section_id')->nullable()->constrained('sections')->onDelete('cascade');
+            $table->string('title')->nullable();
             $table->string('type');//pdf , doc , link
             $table->string('file_url');
             $table->timestamps();

@@ -28,7 +28,7 @@ class LessonContentService
             $storageKey = null;
             // إذا كان المحتوى مرفق PDF، نقوم بحفظه محلياً مؤقتاً
             if ($data['type'] === 'pdf' && $file) {
-                $storageKey = $file->store('attachments', 'local'); // سيتغير إلى b2 لاحقاً
+                $storageKey = $file->store('attachments', 'b2'); 
             }
 
             return LessonContent::create([
@@ -74,9 +74,9 @@ class LessonContentService
             // لو رفع ملف PDF جديد، يحذف القديم ويخزن الجديد
             if ($content->type === 'pdf' && $file) {
                 if ($content->storage_key) {
-                    Storage::disk('local')->delete($content->storage_key);
+                    Storage::disk('b2')->delete($content->storage_key);
                 }
-                $content->storage_key = $file->store('attachments', 'local');
+                $content->storage_key = $file->store('attachments', 'b2');
             }
 
             $content->save();
@@ -94,7 +94,7 @@ class LessonContentService
 
             // حذف الملف الفيزيائي إذا كان PDF
             if ($content->type === 'pdf' && $content->storage_key) {
-                Storage::disk('local')->delete($content->storage_key);
+                Storage::disk('b2')->delete($content->storage_key);
             }
 
             $content->delete();

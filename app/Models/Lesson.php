@@ -39,4 +39,10 @@ class Lesson extends Model
     {
         return $this->hasMany(LessonProgress::class, 'lesson_id');
     }
+
+
+    public function course()
+    {
+       return $this->belongsTo(Course::class);
+    }
 }

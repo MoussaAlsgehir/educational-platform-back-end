@@ -9,11 +9,19 @@ class CourseAttachment extends Model
 {
     protected $fillable = [
         'course_id',
+        'section_id',
+        'title', 
         'type',
         'file_url'
     ];
-    public function course() : BelongsTo
+
+    public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
+    }
+
+    public function section(): BelongsTo
+    {
+        return $this->belongsTo(Section::class);
     }
 }

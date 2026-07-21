@@ -23,11 +23,13 @@ class LessonContentResource extends JsonResource
 
             // 2. حقول تظهر فـقـط إذا كان المحتوى ملف مرفق (pdf)
             $this->mergeWhen($this->type === 'pdf', [
-                'download_url' => $this->storage_key ? asset('storage/' . $this->storage_key) : null,
-            ]),
+              'download_url' => $this->storage_key
+               ? rtrim(env('CLOUDFLARE_WORKER_URL'), '/') . '/' . $this->storage_key
+               : null,
+]),
 
             // 3. حقول تظهر فـقـط إذا كان المحتوى فيديو (video)
-            
+
             $this->mergeWhen($this->type === 'video', [
                 'duration'     => $this->duration,
                 'playback_url' => $this->generateCloudflareWorkerUrl(), // 🔥 الرابط السحري الجديد

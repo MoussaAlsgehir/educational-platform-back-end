@@ -5,12 +5,13 @@ use App\Http\Controllers\Instructors\SectionController;
 use App\Http\Controllers\Instructors\LessonController;
 use App\Http\Controllers\Instructors\LessonContentController;
 use App\Http\Controllers\Instructors\ChunkUploadController;
+use App\Http\Controllers\Instructors\CourseAttachmentController;
 use App\Http\Controllers\Platform_learnova\QuizzController;
 use App\Http\Controllers\Platform_learnova\QuestionController;
 use Illuminate\Support\Facades\Route;
 
 // مسارات المدربين الأساسية
-Route::middleware('role:instructor,super_admin')->prefix('instructor')->group(function () {
+Route::middleware('role:instructor,super_admin,admin')->prefix('instructor')->group(function () {
     // الكورسات
     Route::post('/courses', [InstructorCourseController::class, 'store']);
     Route::get('/courses', [InstructorCourseController::class, 'index']);
@@ -38,6 +39,11 @@ Route::middleware('role:instructor,super_admin')->prefix('instructor')->group(fu
     // رفع الفيديو مقسم (Chunk Upload)
     Route::get('lessons/{lessonId}/upload-vedio/progress', [ChunkUploadController::class, 'checkProgress']);
     Route::post('lessons/{lessonId}/upload-vedio', [ChunkUploadController::class, 'uploadChunk']);
+
+    // مرفقات الكورس (Course Attachments)
+    Route::get('courses/attachments/{attachmentId}',  [CourseAttachmentController::class, 'show']);
+    Route::post('courses/{courseId}/attachments', [CourseAttachmentController::class, 'store']);
+    Route::delete('courses/attachments/{attachmentId}',   [CourseAttachmentController::class, 'destroy']);
 });
 
 // مسارات الـ Quizzs الخاصة بالمدربين والإدارة والتعديل عليها

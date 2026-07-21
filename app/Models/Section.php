@@ -33,4 +33,9 @@ class Section extends Model
     public function quiz(){
 return $this->hasOne(Quizz::class);
     }
+
+    public function attachments() : HasMany
+    {
+        return $this->hasMany(CourseAttachment::class, 'section_id');
+    }
 }

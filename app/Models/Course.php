@@ -74,4 +74,58 @@ class Course extends Model
     {
         return $this->hasMany(Certificate::class, 'course_id');
     }
+
+
+    //scopes
+
+
+    public function scopeAvailable($query)
+    {
+        return $query->whereNotIn('status', ['pending', 'rejected']);
+    }
+    public function scopeStatusFilter($query,$status)
+    {
+        if ($status) {
+             $query->where('status', $status);
+        }
+        return $query;
+    }
+
+
+    public function scopeSearch($query, $term)
+    {
+        if ($term) {
+            return $query->where(function ($q) use ($term) {
+                $q->where('title', 'LIKE', "%{$term}%")
+                  ->orWhere('description', 'LIKE', "%{$term}%");
+            });
+        }
+        return $query;
+    }
+
+
+      public function scopeCategoryFilter($query, $categoryIds)
+    {
+        if (is_array($categoryIds)) {
+            $categoryIds = array_filter($categoryIds, function($value) {
+                return !is_null($value) && $value !== '';
+            });
+        }
+
+        if (!empty($categoryIds)) {
+            return $query->whereHas('categories', function ($q) use ($categoryIds) {
+                $q->whereIn('categories.id', $categoryIds);
+            });
+        }
+
+        return $query;
+    }
+
+
+    public function scopePriceFilter($query, $minPrice, $maxPrice)
+    {
+        if ($minPrice !== null) $query->where('price', '>=', $minPrice);
+        if ($maxPrice !== null) $query->where('price', '<=', $maxPrice);
+        return $query;
+    }
 }

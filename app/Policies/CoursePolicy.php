@@ -23,7 +23,7 @@ class CoursePolicy
      */
     public function create(User $user)
     {
-        return $user->hasRole('teacher');
+        return $user->hasRole('instructor');
     }
 
     /**
@@ -31,11 +31,11 @@ class CoursePolicy
      */
     public function update(User $user, Course $course)
     {
-        return $user->hasRole('teacher') && $course->teacher_id === $user->id;
+        return $user->hasRole('instructor') && $course->teacher_id === $user->id;
     }
 
     public function delete(User $user, Course $course)
     {
-        return $user->hasRole('teacher') && $course->teacher_id === $user->id;
+        return $user->hasRole('instructor') && $course->teacher_id === $user->id;
     }
 }

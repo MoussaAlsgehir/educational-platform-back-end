@@ -23,7 +23,7 @@ class LessonPolicy
      */
     public function create(User $user, Course $course)
     {
-        return $user->hasRole('teacher') && $course->teacher_id === $user->id;
+        return $user->hasRole('instructor') && $course->teacher_id === $user->id;
     }
 
     /**
@@ -31,11 +31,11 @@ class LessonPolicy
      */
     public function update(User $user, Lesson $lesson)
     {
-        return $user->hasRole('teacher') && $lesson->course->teacher_id === $user->id;
+        return $user->hasRole('instructor') && $lesson->course->teacher_id === $user->id;
     }
 
     public function delete(User $user, Lesson $lesson)
     {
-        return $user->hasRole('teacher') && $lesson->course->teacher_id === $user->id;
+        return $user->hasRole('instructor') && $lesson->course->teacher_id === $user->id;
     }
 }

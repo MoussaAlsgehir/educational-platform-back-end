@@ -27,13 +27,13 @@ class SectionController extends Controller
     public function index(int $courseId)
     {
         $course = Course::findOrFail($courseId);
-        $sections = $course->sections()->orderBy('order', 'asc')->with('lessons.contents')->get();
+        $sections = $course->sections()->orderBy('order', 'asc')->with('lessons','attachments')->get();
 
         return ApiResource::sendResponse("Sections retrieved successfully.", SectionResource::collection($sections));
     }
     public function show(int $sectionId)
     {
-        $section = Section::findOrFail($sectionId);
+        $section = Section::with('lessons','attachments')->findOrFail($sectionId);
 
         return ApiResource::sendResponse("Section retrieved successfully.", new SectionResource($section));
     }

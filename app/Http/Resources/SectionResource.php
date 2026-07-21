@@ -20,6 +20,7 @@ class SectionResource extends JsonResource
             'title' => $this->title,
             'order' => $this->order,
            'lessons' => LessonResource::collection($this->whenLoaded('lessons')),
+           'attachments' => AttachmentResource::collection($this->whenLoaded('attachments')),
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
         ];
     }
