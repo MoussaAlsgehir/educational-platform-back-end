@@ -18,6 +18,7 @@ class User extends Authenticatable
      */
     protected $guarded = ['id'];
 
+    protected $appends = ['fullname']; // ليظهر fullname دائماً بالـ JSON
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -41,6 +42,10 @@ class User extends Authenticatable
         ];
     }
 
+    public function getFullNameAttribute()
+    {
+        return "{$this->first_name} {$this->last_name}";
+    }
     public function otps()
     {
         return $this->hasMany(Otp::class);

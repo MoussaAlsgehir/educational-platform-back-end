@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admins\CategoryController;
+use App\Http\Controllers\Admins\DashboardController;
 use App\Http\Controllers\Platform_learnova\AdminManagementController;
 use App\Http\Controllers\Platform_learnova\RoleController;
 use App\Http\Controllers\Platform_learnova\CertificateController;
@@ -27,11 +28,7 @@ Route::middleware('role:super_admin,admin')->group(function () {
     // مسارات الشهادات الإدارية
     Route::prefix('certificates')->controller(CertificateController::class)->group(function () {
         Route::post('/check', 'exists');                        // student/certificates/check - التحقق من وجود شهادة
-
-        // Route::get('/student/{studentId}', 'getStudentCertificates');  // admin/certificates/student/{studentId} - جلب شهادات طالب
-        // Route::get('/course/{courseId}', 'getCourseCertificates');     // admin/certificates/course/{courseId} - جلب شهادات كورس
-        // Route::get('/{certificateId}', 'show');                        // admin/certificates/{id} - معلومات الشهادة
-        // Route::get('/{certificateId}/download', 'downloadPdf');        // admin/certificates/{id}/download - تحميل PDF
-        // Route::post('/{certificateId}/delete', 'delete');             // admin/certificates/{certificateId}/delete - حذف شهادة
     });
+
+    Route::get('/dashboard', [DashboardController::class, 'getDashboardStatistics']);
 });

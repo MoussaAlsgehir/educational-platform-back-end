@@ -13,4 +13,7 @@ public function courses()
         return $this->belongsToMany(Course::class, 'category_course');
     }
 
+    public function CategoryCourses(){
+        return $this->hasMany(CourseCategory::class);
+    }
 }
