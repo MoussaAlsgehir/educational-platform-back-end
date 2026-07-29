@@ -44,7 +44,7 @@ class AuthController extends Controller
         $user = User::create($validatedData);
 
         // إسناد الأدوار الافتراضية (طالب ومدرس)
-        $defaultRoles = Role::whereIn('name', ['student', 'instructor'])->pluck('id')->toArray();
+        $defaultRoles = Role::where('name', 'student')->pluck('id');
         $user->roles()->attach($defaultRoles);
 
         $otpCode = (string) rand(100000, 999999);

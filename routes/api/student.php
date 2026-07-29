@@ -71,3 +71,4 @@ Route::middleware('role:student,super_admin')->prefix('student/certificates')->c
     Route::get('/{certificateId}', 'show');                // student/certificates/{id} - معلومات الشهادة
     Route::get('/{certificateId}/download', 'downloadPdf'); // student/certificates/{id}/download - تحميل PDF
 });
+

@@ -5,35 +5,49 @@ namespace App\Http\Controllers\Platform_learnova;
 use App\Http\Controllers\Controller;
 use App\Models\Question;
 use App\Models\Quizz;
+use App\Models\Course;
 use App\Helpers\ApiResource;
+use App\Http\Requests\QuestionRequest\IndexQuestionRequest;
 use App\Http\Requests\QuestionRequest\StoreQuestionRequest;
 use App\Http\Requests\QuestionRequest\UpdateQuestionRequest;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class QuestionController extends Controller
 {
-    public function index(Request $request)
+    public function index(IndexQuestionRequest $request)
     {
-        if (!$request->has('quizz_id')) {
-            return ApiResource::sendResponse('The quizz_id field is required.', null, 422);
+        $user = Auth::user();
+        $courseId = $request->validated('course_id');
+        $quizzId = $request->validated('quizz_id');
+
+        $course = Course::select('id', 'teacher_id')->find($courseId);
+
+        if (!$course) {
+            return ApiResource::sendResponse('Course not found.', null, 404);
         }
 
+        // 1. التحقق من الصلاحيات (المدرس أو الطالب المسجل)
+        $isTeacher = ($course->teacher_id === $user->id);
+        $isEnrolledStudent = $user->courses()->where('course_id', $courseId)->exists();
+
+        if (!$isTeacher && !$isEnrolledStudent) {
+            return ApiResource::sendResponse('Access denied. You are not enrolled or owning this course.', null, 403);
+        }
+
+        // 2. جلب الأسئلة
         $questions = Question::with('answers')
-            ->where('quizz_id', $request->quizz_id)
-            ->whereHas('quizz.section.course', function ($q) {
-                $q->where('teacher_id', Auth::id());
-            })
+            ->where('quizz_id', $quizzId)
             ->get();
 
-        return ApiResource::sendResponse('Questions for the specified quiz retrieved successfully.', $questions, 200);
+        return ApiResource::sendResponse('Questions retrieved successfully.', $questions, 200);
     }
+
     public function store(StoreQuestionRequest $request)
     {
         $validatedData = $request->validated();
 
-        // التحقق من أن الكويز يتبع لكورس يملكه هذا المدرس الحالي
+        // التحقق من أن الكويز يتبع لكورس يملكه هذا المدرس
         $quiz = Quizz::where('id', $validatedData['quizz_id'])
             ->whereHas('section.course', function ($query) {
                 $query->where('teacher_id', Auth::id());
@@ -43,8 +57,7 @@ class QuestionController extends Controller
             return ApiResource::sendResponse('Access denied. You do not own this course.', null, 403);
         }
 
-        DB::beginTransaction();
-        try {
+        return DB::transaction(function () use ($validatedData) {
             $question = Question::create([
                 'quizz_id'        => $validatedData['quizz_id'],
                 'question_text'   => $validatedData['question_text'],
@@ -53,33 +66,45 @@ class QuestionController extends Controller
 
             $question->answers()->createMany($validatedData['answers']);
 
-            DB::commit();
-
             return ApiResource::sendResponse(
                 'Question and answers created successfully.',
                 $question->load('answers'),
                 201
             );
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return ApiResource::sendResponse(
-                'An unexpected error occurred while saving the question.',
-                ['error' => $e->getMessage()],
-                500
-            );
-        }
+        });
     }
 
     public function show($id)
     {
-        $question = Question::with('answers')->find($id);
+        $user = Auth::user();
+
+        // جلب السؤال مع الكورس المرتبط به
+        $question = Question::with(['answers', 'quizz.section.course'])->find($id);
 
         if (!$question) {
-            return ApiResource::sendResponse('Question not found.', null, 200);
+            return ApiResource::sendResponse('Question not found.', null, 404);
         }
+
+        $course = $question->quizz->section->course ?? null;
+
+        if (!$course) {
+            return ApiResource::sendResponse('Associated course not found.', null, 404);
+        }
+
+        // التحقق من الصلاحيات
+        $isTeacher = ($course->teacher_id === $user->id);
+        $isEnrolledStudent = $user->courses()->where('course_id', $course->id)->exists();
+
+        if (!$isTeacher && !$isEnrolledStudent) {
+            return ApiResource::sendResponse('Access denied.', null, 403);
+        }
+
+        // تنظيف الاستجابة بفك العلاقة المؤقتة
+        $question->unsetRelation('quizz');
 
         return ApiResource::sendResponse('Question retrieved successfully.', $question, 200);
     }
+
     public function update(UpdateQuestionRequest $request, $id)
     {
         $question = Question::where('id', $id)
@@ -93,49 +118,42 @@ class QuestionController extends Controller
 
         $validatedData = $request->validated();
 
-        DB::beginTransaction();
-        try {
-            // تحديث بيانات السؤال الأساسية إن وجدت
+        return DB::transaction(function () use ($question, $request, $validatedData) {
+            // تحديث بيانات السؤال الأساسية
             $question->update($request->only(['question_text', 'question_points', 'quizz_id']));
 
-            // التعديل الذكي على الأجوبة دون الحذف العشوائي
-            if ($request->has('answers')) {
+            // مزامنة الأجوبة الذكية (تحديث، إضافة، وحذف المستغنى عنه)
+            if (isset($validatedData['answers'])) {
+                $submittedIds = collect($validatedData['answers'])
+                    ->pluck('id')
+                    ->filter()
+                    ->toArray();
+
+                // حذف الأجوبة التي أزالها المستخدم من الشاشة
+                $question->answers()->whereNotIn('id', $submittedIds)->delete();
+
+                // تحديث أو إضافة الخيارات بأسلوب أنيق
                 foreach ($validatedData['answers'] as $answerData) {
-                    if (isset($answerData['id'])) {
-                        // 1. إذا أرسل id الجواب، نقوم بتحديث هذا الجواب تحديداً
-                        $question->answers()->where('id', $answerData['id'])->update([
+                    $question->answers()->updateOrCreate(
+                        ['id' => $answerData['id'] ?? null],
+                        [
                             'answer_text' => $answerData['answer_text'],
                             'is_correct'  => $answerData['is_correct'],
-                        ]);
-                    } else {
-                        // 2. إذا لم يرسل id، نعتبره خياراً جديداً أضافه الأستاذ للسؤال
-                        $question->answers()->create([
-                            'answer_text' => $answerData['answer_text'],
-                            'is_correct'  => $answerData['is_correct'],
-                        ]);
-                    }
+                        ]
+                    );
                 }
             }
-
-            DB::commit();
 
             return ApiResource::sendResponse(
                 'Question and answers updated successfully.',
                 $question->load('answers'),
                 200
             );
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return ApiResource::sendResponse(
-                'An error occurred while updating the data.',
-                ['error' => $e->getMessage()],
-                500
-            );
-        }
+        });
     }
+
     public function destroy($id)
     {
-        // التحقق من وجود السؤال وضمان ملكية المدرس للكورس التابع له قبل الحذف
         $question = Question::where('id', $id)
             ->whereHas('quizz.section.course', function ($query) {
                 $query->where('teacher_id', Auth::id());
