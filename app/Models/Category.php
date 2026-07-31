@@ -18,6 +18,8 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Category whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Category whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Category whereUpdatedAt($value)
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CourseCategory> $CategoryCourses
+ * @property-read int|null $category_courses_count
  * @mixin \Eloquent
  */
 class Category extends Model
@@ -29,4 +31,7 @@ public function courses()
         return $this->belongsToMany(Course::class, 'category_course');
     }
 
+    public function CategoryCourses(){
+        return $this->hasMany(CourseCategory::class);
+    }
 }

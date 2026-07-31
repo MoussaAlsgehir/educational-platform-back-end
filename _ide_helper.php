@@ -5,7 +5,7 @@
 
 /**
  * A helper file for Laravel, to provide autocomplete information to your IDE
- * Generated for Laravel 12.56.0.
+ * Generated for Laravel 12.64.0.
  *
  * This file should not be included in your code, only analyzed by your IDE!
  *
@@ -14158,7 +14158,6 @@ namespace Illuminate\Support\Facades {
 
             }
     /**
-     * @method static \BackedEnum|(\BackedEnum|null enum(string $key, string $enumClass, \BackedEnum|null $default = null)
      * @see \Illuminate\Http\Request
      */
     class Request {
@@ -15137,10 +15136,6 @@ namespace Illuminate\Support\Facades {
          * header value is a comma+space separated list of IP addresses, the left-most
          * being the original client, and each successive proxy that passed the request
          * adding the IP address where it received the request from.
-         *
-         * If your reverse proxy uses a different header name than "X-Forwarded-For",
-         * ("Client-Ip" for instance), configure it via the $trustedHeaderSet
-         * argument of the Request::setTrustedProxies() method instead.
          *
          * @see getClientIps()
          * @see https://wikipedia.org/wiki/X-Forwarded-For
@@ -20606,6 +20601,7 @@ namespace Illuminate\Support\Facades {
          * @param array $headers
          * @param string|null $disposition
          * @return \Symfony\Component\HttpFoundation\StreamedResponse
+         * @throws UnableToRetrieveMetadata
          * @static
          */
         public static function response($path, $name = null, $headers = [], $disposition = 'inline')
@@ -20623,6 +20619,7 @@ namespace Illuminate\Support\Facades {
          * @param string|null $name
          * @param array $headers
          * @return \Symfony\Component\HttpFoundation\StreamedResponse
+         * @throws UnableToRetrieveMetadata
          * @static
          */
         public static function serve($request, $path, $name = null, $headers = [])
@@ -20639,6 +20636,7 @@ namespace Illuminate\Support\Facades {
          * @param string|null $name
          * @param array $headers
          * @return \Symfony\Component\HttpFoundation\StreamedResponse
+         * @throws UnableToRetrieveMetadata
          * @static
          */
         public static function download($path, $name = null, $headers = [])
@@ -20837,6 +20835,7 @@ namespace Illuminate\Support\Facades {
          *
          * @param string $path
          * @return string|false
+         * @throws UnableToRetrieveMetadata
          * @static
          */
         public static function mimeType($path)
@@ -23439,6 +23438,698 @@ namespace Illuminate\Support\Facades {
             }
     }
 
+namespace Barryvdh\DomPDF\Facade {
+    /**
+     * @method static BasePDF setBaseHost(string $baseHost)
+     * @method static BasePDF setBasePath(string $basePath)
+     * @method static BasePDF setCanvas(\Dompdf\Canvas $canvas)
+     * @method static BasePDF setCallbacks(array<string, mixed> $callbacks)
+     * @method static BasePDF setCss(\Dompdf\Css\Stylesheet $css)
+     * @method static BasePDF setDefaultView(string $defaultView, array<string, mixed> $options)
+     * @method static BasePDF setDom(\DOMDocument $dom)
+     * @method static BasePDF setFontMetrics(\Dompdf\FontMetrics $fontMetrics)
+     * @method static BasePDF setHttpContext(resource|array<string, mixed> $httpContext)
+     * @method static BasePDF setPaper(string|float[] $paper, string $orientation = 'portrait')
+     * @method static BasePDF setProtocol(string $protocol)
+     * @method static BasePDF setTree(\Dompdf\Frame\FrameTree $tree)
+     */
+    class Pdf {
+        /**
+         * Get the DomPDF instance
+         *
+         * @static
+         */
+        public static function getDomPDF()
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->getDomPDF();
+        }
+
+        /**
+         * Show or hide warnings
+         *
+         * @static
+         */
+        public static function setWarnings($warnings)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->setWarnings($warnings);
+        }
+
+        /**
+         * Load a HTML string
+         *
+         * @param string|null $encoding Not used yet
+         * @static
+         */
+        public static function loadHTML($string, $encoding = null)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->loadHTML($string, $encoding);
+        }
+
+        /**
+         * Load a HTML file
+         *
+         * @static
+         */
+        public static function loadFile($file)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->loadFile($file);
+        }
+
+        /**
+         * Add metadata info
+         *
+         * @param array<string, string> $info
+         * @static
+         */
+        public static function addInfo($info)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->addInfo($info);
+        }
+
+        /**
+         * Load a View and convert to HTML
+         *
+         * @param array<string, mixed> $data
+         * @param array<string, mixed> $mergeData
+         * @param string|null $encoding Not used yet
+         * @static
+         */
+        public static function loadView($view, $data = [], $mergeData = [], $encoding = null)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->loadView($view, $data, $mergeData, $encoding);
+        }
+
+        /**
+         * Set/Change an option (or array of options) in Dompdf
+         *
+         * @param array<string, mixed>|string $attribute
+         * @param null|mixed $value
+         * @static
+         */
+        public static function setOption($attribute, $value = null)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->setOption($attribute, $value);
+        }
+
+        /**
+         * Replace all the Options from DomPDF
+         *
+         * @param array<string, mixed> $options
+         * @static
+         */
+        public static function setOptions($options, $mergeWithDefaults = false)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->setOptions($options, $mergeWithDefaults);
+        }
+
+        /**
+         * Output the PDF as a string.
+         *
+         * The options parameter controls the output. Accepted options are:
+         *
+         * 'compress' = > 1 or 0 - apply content stream compression, this is
+         *    on (1) by default
+         *
+         * @param array<string, int> $options
+         * @return string The rendered PDF as string
+         * @static
+         */
+        public static function output($options = [])
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->output($options);
+        }
+
+        /**
+         * Save the PDF to a file
+         *
+         * @static
+         */
+        public static function save($filename, $disk = null)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->save($filename, $disk);
+        }
+
+        /**
+         * Make the PDF downloadable by the user
+         *
+         * @static
+         */
+        public static function download($filename = 'document.pdf')
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->download($filename);
+        }
+
+        /**
+         * Return a response with the PDF to show in the browser
+         *
+         * @static
+         */
+        public static function stream($filename = 'document.pdf')
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->stream($filename);
+        }
+
+        /**
+         * Render the PDF
+         *
+         * @static
+         */
+        public static function render()
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->render();
+        }
+
+        /**
+         * @param array<string> $pc
+         * @static
+         */
+        public static function setEncryption($password, $ownerpassword = '', $pc = [])
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->setEncryption($password, $ownerpassword, $pc);
+        }
+
+            }
+    /**
+     * @method static BasePDF setBaseHost(string $baseHost)
+     * @method static BasePDF setBasePath(string $basePath)
+     * @method static BasePDF setCanvas(\Dompdf\Canvas $canvas)
+     * @method static BasePDF setCallbacks(array<string, mixed> $callbacks)
+     * @method static BasePDF setCss(\Dompdf\Css\Stylesheet $css)
+     * @method static BasePDF setDefaultView(string $defaultView, array<string, mixed> $options)
+     * @method static BasePDF setDom(\DOMDocument $dom)
+     * @method static BasePDF setFontMetrics(\Dompdf\FontMetrics $fontMetrics)
+     * @method static BasePDF setHttpContext(resource|array<string, mixed> $httpContext)
+     * @method static BasePDF setPaper(string|float[] $paper, string $orientation = 'portrait')
+     * @method static BasePDF setProtocol(string $protocol)
+     * @method static BasePDF setTree(\Dompdf\Frame\FrameTree $tree)
+     */
+    class Pdf {
+        /**
+         * Get the DomPDF instance
+         *
+         * @static
+         */
+        public static function getDomPDF()
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->getDomPDF();
+        }
+
+        /**
+         * Show or hide warnings
+         *
+         * @static
+         */
+        public static function setWarnings($warnings)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->setWarnings($warnings);
+        }
+
+        /**
+         * Load a HTML string
+         *
+         * @param string|null $encoding Not used yet
+         * @static
+         */
+        public static function loadHTML($string, $encoding = null)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->loadHTML($string, $encoding);
+        }
+
+        /**
+         * Load a HTML file
+         *
+         * @static
+         */
+        public static function loadFile($file)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->loadFile($file);
+        }
+
+        /**
+         * Add metadata info
+         *
+         * @param array<string, string> $info
+         * @static
+         */
+        public static function addInfo($info)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->addInfo($info);
+        }
+
+        /**
+         * Load a View and convert to HTML
+         *
+         * @param array<string, mixed> $data
+         * @param array<string, mixed> $mergeData
+         * @param string|null $encoding Not used yet
+         * @static
+         */
+        public static function loadView($view, $data = [], $mergeData = [], $encoding = null)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->loadView($view, $data, $mergeData, $encoding);
+        }
+
+        /**
+         * Set/Change an option (or array of options) in Dompdf
+         *
+         * @param array<string, mixed>|string $attribute
+         * @param null|mixed $value
+         * @static
+         */
+        public static function setOption($attribute, $value = null)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->setOption($attribute, $value);
+        }
+
+        /**
+         * Replace all the Options from DomPDF
+         *
+         * @param array<string, mixed> $options
+         * @static
+         */
+        public static function setOptions($options, $mergeWithDefaults = false)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->setOptions($options, $mergeWithDefaults);
+        }
+
+        /**
+         * Output the PDF as a string.
+         *
+         * The options parameter controls the output. Accepted options are:
+         *
+         * 'compress' = > 1 or 0 - apply content stream compression, this is
+         *    on (1) by default
+         *
+         * @param array<string, int> $options
+         * @return string The rendered PDF as string
+         * @static
+         */
+        public static function output($options = [])
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->output($options);
+        }
+
+        /**
+         * Save the PDF to a file
+         *
+         * @static
+         */
+        public static function save($filename, $disk = null)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->save($filename, $disk);
+        }
+
+        /**
+         * Make the PDF downloadable by the user
+         *
+         * @static
+         */
+        public static function download($filename = 'document.pdf')
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->download($filename);
+        }
+
+        /**
+         * Return a response with the PDF to show in the browser
+         *
+         * @static
+         */
+        public static function stream($filename = 'document.pdf')
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->stream($filename);
+        }
+
+        /**
+         * Render the PDF
+         *
+         * @static
+         */
+        public static function render()
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->render();
+        }
+
+        /**
+         * @param array<string> $pc
+         * @static
+         */
+        public static function setEncryption($password, $ownerpassword = '', $pc = [])
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->setEncryption($password, $ownerpassword, $pc);
+        }
+
+            }
+    }
+
+namespace SimpleSoftwareIO\QrCode\Facades {
+    /**
+     */
+    class QrCode {
+        /**
+         * Generates the QrCode.
+         *
+         * @param string $text
+         * @param string|null $filename
+         * @return void|\Illuminate\Support\HtmlString|string
+         * @throws WriterException
+         * @throws InvalidArgumentException
+         * @static
+         */
+        public static function generate($text, $filename = null)
+        {
+            /** @var \SimpleSoftwareIO\QrCode\Generator $instance */
+            return $instance->generate($text, $filename);
+        }
+
+        /**
+         * Merges an image over the QrCode.
+         *
+         * @param string $filepath
+         * @param float $percentage
+         * @param \SimpleSoftwareIO\QrCode\SimpleSoftwareIO\QrCode\boolean|bool $absolute
+         * @return \Generator
+         * @static
+         */
+        public static function merge($filepath, $percentage = 0.2, $absolute = false)
+        {
+            /** @var \SimpleSoftwareIO\QrCode\Generator $instance */
+            return $instance->merge($filepath, $percentage, $absolute);
+        }
+
+        /**
+         * Merges an image string with the center of the QrCode.
+         *
+         * @param string $content
+         * @param float $percentage
+         * @return \Generator
+         * @static
+         */
+        public static function mergeString($content, $percentage = 0.2)
+        {
+            /** @var \SimpleSoftwareIO\QrCode\Generator $instance */
+            return $instance->mergeString($content, $percentage);
+        }
+
+        /**
+         * Sets the size of the QrCode.
+         *
+         * @param int $pixels
+         * @return \Generator
+         * @static
+         */
+        public static function size($pixels)
+        {
+            /** @var \SimpleSoftwareIO\QrCode\Generator $instance */
+            return $instance->size($pixels);
+        }
+
+        /**
+         * Sets the format of the QrCode.
+         *
+         * @param string $format
+         * @return \Generator
+         * @throws InvalidArgumentException
+         * @static
+         */
+        public static function format($format)
+        {
+            /** @var \SimpleSoftwareIO\QrCode\Generator $instance */
+            return $instance->format($format);
+        }
+
+        /**
+         * Sets the foreground color of the QrCode.
+         *
+         * @param int $red
+         * @param int $green
+         * @param int $blue
+         * @param null|int $alpha
+         * @return \Generator
+         * @static
+         */
+        public static function color($red, $green, $blue, $alpha = null)
+        {
+            /** @var \SimpleSoftwareIO\QrCode\Generator $instance */
+            return $instance->color($red, $green, $blue, $alpha);
+        }
+
+        /**
+         * Sets the background color of the QrCode.
+         *
+         * @param int $red
+         * @param int $green
+         * @param int $blue
+         * @param null|int $alpha
+         * @return \Generator
+         * @static
+         */
+        public static function backgroundColor($red, $green, $blue, $alpha = null)
+        {
+            /** @var \SimpleSoftwareIO\QrCode\Generator $instance */
+            return $instance->backgroundColor($red, $green, $blue, $alpha);
+        }
+
+        /**
+         * Sets the eye color for the provided eye index.
+         *
+         * @param int $eyeNumber
+         * @param int $innerRed
+         * @param int $innerGreen
+         * @param int $innerBlue
+         * @param int $outterRed
+         * @param int $outterGreen
+         * @param int $outterBlue
+         * @return \Generator
+         * @throws InvalidArgumentException
+         * @static
+         */
+        public static function eyeColor($eyeNumber, $innerRed, $innerGreen, $innerBlue, $outterRed = 0, $outterGreen = 0, $outterBlue = 0)
+        {
+            /** @var \SimpleSoftwareIO\QrCode\Generator $instance */
+            return $instance->eyeColor($eyeNumber, $innerRed, $innerGreen, $innerBlue, $outterRed, $outterGreen, $outterBlue);
+        }
+
+        /**
+         * @static
+         */
+        public static function gradient($startRed, $startGreen, $startBlue, $endRed, $endGreen, $endBlue, $type)
+        {
+            /** @var \SimpleSoftwareIO\QrCode\Generator $instance */
+            return $instance->gradient($startRed, $startGreen, $startBlue, $endRed, $endGreen, $endBlue, $type);
+        }
+
+        /**
+         * Sets the eye style.
+         *
+         * @param string $style
+         * @return \Generator
+         * @throws InvalidArgumentException
+         * @static
+         */
+        public static function eye($style)
+        {
+            /** @var \SimpleSoftwareIO\QrCode\Generator $instance */
+            return $instance->eye($style);
+        }
+
+        /**
+         * Sets the style of the blocks for the QrCode.
+         *
+         * @param string $style
+         * @param float $size
+         * @return \Generator
+         * @throws InvalidArgumentException
+         * @static
+         */
+        public static function style($style, $size = 0.5)
+        {
+            /** @var \SimpleSoftwareIO\QrCode\Generator $instance */
+            return $instance->style($style, $size);
+        }
+
+        /**
+         * Sets the encoding for the QrCode.
+         *
+         * Possible values are
+         * ISO-8859-2, ISO-8859-3, ISO-8859-4, ISO-8859-5, ISO-8859-6,
+         * ISO-8859-7, ISO-8859-8, ISO-8859-9, ISO-8859-10, ISO-8859-11,
+         * ISO-8859-12, ISO-8859-13, ISO-8859-14, ISO-8859-15, ISO-8859-16,
+         * SHIFT-JIS, WINDOWS-1250, WINDOWS-1251, WINDOWS-1252, WINDOWS-1256,
+         * UTF-16BE, UTF-8, ASCII, GBK, EUC-KR.
+         *
+         * @param string $encoding
+         * @return \Generator
+         * @static
+         */
+        public static function encoding($encoding)
+        {
+            /** @var \SimpleSoftwareIO\QrCode\Generator $instance */
+            return $instance->encoding($encoding);
+        }
+
+        /**
+         * Sets the error correction for the QrCode.
+         *
+         * L: 7% loss.
+         * M: 15% loss.
+         * Q: 25% loss.
+         * H: 30% loss.
+         *
+         * @param string $errorCorrection
+         * @return \Generator
+         * @static
+         */
+        public static function errorCorrection($errorCorrection)
+        {
+            /** @var \SimpleSoftwareIO\QrCode\Generator $instance */
+            return $instance->errorCorrection($errorCorrection);
+        }
+
+        /**
+         * Sets the margin of the QrCode.
+         *
+         * @param int $margin
+         * @return \Generator
+         * @static
+         */
+        public static function margin($margin)
+        {
+            /** @var \SimpleSoftwareIO\QrCode\Generator $instance */
+            return $instance->margin($margin);
+        }
+
+        /**
+         * Fetches the Writer.
+         *
+         * @param \BaconQrCode\Renderer\ImageRenderer $renderer
+         * @return \BaconQrCode\Writer
+         * @static
+         */
+        public static function getWriter($renderer)
+        {
+            /** @var \SimpleSoftwareIO\QrCode\Generator $instance */
+            return $instance->getWriter($renderer);
+        }
+
+        /**
+         * Fetches the Image Renderer.
+         *
+         * @return \BaconQrCode\Renderer\ImageRenderer
+         * @static
+         */
+        public static function getRenderer()
+        {
+            /** @var \SimpleSoftwareIO\QrCode\Generator $instance */
+            return $instance->getRenderer();
+        }
+
+        /**
+         * Returns the Renderer Style.
+         *
+         * @return \BaconQrCode\Renderer\RendererStyle\RendererStyle
+         * @static
+         */
+        public static function getRendererStyle()
+        {
+            /** @var \SimpleSoftwareIO\QrCode\Generator $instance */
+            return $instance->getRendererStyle();
+        }
+
+        /**
+         * Fetches the formatter.
+         *
+         * @return \BaconQrCode\Renderer\Image\ImageBackEndInterface
+         * @static
+         */
+        public static function getFormatter()
+        {
+            /** @var \SimpleSoftwareIO\QrCode\Generator $instance */
+            return $instance->getFormatter();
+        }
+
+        /**
+         * Fetches the module.
+         *
+         * @return \BaconQrCode\Renderer\Module\ModuleInterface
+         * @static
+         */
+        public static function getModule()
+        {
+            /** @var \SimpleSoftwareIO\QrCode\Generator $instance */
+            return $instance->getModule();
+        }
+
+        /**
+         * Fetches the eye style.
+         *
+         * @return \BaconQrCode\Renderer\Eye\EyeInterface
+         * @static
+         */
+        public static function getEye()
+        {
+            /** @var \SimpleSoftwareIO\QrCode\Generator $instance */
+            return $instance->getEye();
+        }
+
+        /**
+         * Fetches the color fill.
+         *
+         * @return \BaconQrCode\Renderer\RendererStyle\Fill
+         * @static
+         */
+        public static function getFill()
+        {
+            /** @var \SimpleSoftwareIO\QrCode\Generator $instance */
+            return $instance->getFill();
+        }
+
+        /**
+         * Creates a RGB or Alpha channel color.
+         *
+         * @param int $red
+         * @param int $green
+         * @param int $blue
+         * @param null|int $alpha
+         * @return \BaconQrCode\Renderer\Color\ColorInterface
+         * @static
+         */
+        public static function createColor($red, $green, $blue, $alpha = null)
+        {
+            /** @var \SimpleSoftwareIO\QrCode\Generator $instance */
+            return $instance->createColor($red, $green, $blue, $alpha);
+        }
+
+            }
+    }
+
 namespace Illuminate\Http {
     /**
      */
@@ -24171,7 +24862,7 @@ namespace  {
          * @param string $pageName
          * @param int|null $page
          * @param \Closure|int|null $total
-         * @return \Illuminate\Pagination\LengthAwarePaginator
+         * @return \Illuminate\Pagination\LengthAwarePaginator<int, TModel>
          * @throws \InvalidArgumentException
          * @static
          */
@@ -24188,7 +24879,7 @@ namespace  {
          * @param array|string $columns
          * @param string $pageName
          * @param int|null $page
-         * @return \Illuminate\Contracts\Pagination\Paginator
+         * @return \Illuminate\Pagination\Paginator<int, TModel>
          * @static
          */
         public static function simplePaginate($perPage = null, $columns = [], $pageName = 'page', $page = null)
@@ -24204,7 +24895,7 @@ namespace  {
          * @param array|string $columns
          * @param string $cursorName
          * @param \Illuminate\Pagination\Cursor|string|null $cursor
-         * @return \Illuminate\Contracts\Pagination\CursorPaginator
+         * @return \Illuminate\Pagination\CursorPaginator<int, TModel>
          * @static
          */
         public static function cursorPaginate($perPage = null, $columns = [], $cursorName = 'cursor', $cursor = null)
@@ -28575,6 +29266,9 @@ namespace  {
     class Validator extends \Illuminate\Support\Facades\Validator {}
     class View extends \Illuminate\Support\Facades\View {}
     class Vite extends \Illuminate\Support\Facades\Vite {}
+    class PDF extends \Barryvdh\DomPDF\Facade\Pdf {}
+    class Pdf extends \Barryvdh\DomPDF\Facade\Pdf {}
+    class QrCode extends \SimpleSoftwareIO\QrCode\Facades\QrCode {}
 }
 
 

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admins\CategoryController;
+use App\Http\Controllers\Platform_learnova\CertificateController;
 use App\Http\Controllers\Platform_learnova\LessonProgressController;
 use App\Http\Controllers\Students\StudentCourseController;
 use App\Http\Controllers\Platform_learnova\QuizzController;
@@ -67,5 +68,14 @@ Route::middleware('role:student,super_admin')->prefix('student')->group(function
     Route::post('/lesson/{lessonId}/complete', [LessonProgressController::class, 'markAsCompleted']);
 
     // إعادة تعيين (حذف) تقدم الدرس
-    Route::delete('/lesson/{lessonId}/progress', [LessonProgressController::class, 'resetProgress']);
+    // Route::post('/lesson/{lessonId}/resetProgress', [LessonProgressController::class, 'resetProgress']);
 });
+
+// مسارات الشهادات للطلاب
+Route::middleware('role:student,super_admin')->prefix('student/certificates')->controller(CertificateController::class)->group(function () {
+    Route::post('/check', 'exists');                        // student/certificates/check - التحقق من وجود شهادة
+    Route::get('/', 'getStudentCertificates');              // student/certificates - جلب جميع شهادات الطالب
+    Route::get('/{certificateId}', 'show');                // student/certificates/{id} - معلومات الشهادة
+    Route::get('/{certificateId}/download', 'downloadPdf'); // student/certificates/{id}/download - تحميل PDF
+});
+

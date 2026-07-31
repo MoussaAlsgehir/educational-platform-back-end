@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 
+
 class Course extends Model
 {
 
@@ -134,5 +135,8 @@ class Course extends Model
         if ($minPrice !== null) $query->where('price', '>=', $minPrice);
         if ($maxPrice !== null) $query->where('price', '<=', $maxPrice);
         return $query;
+    }
+    public function categoryCourses(){
+        return $this->hasMany(CourseCategory::class);
     }
 }
