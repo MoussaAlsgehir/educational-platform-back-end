@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CourseFilterRequest;
 use App\Http\Resources\CourseResource;
 use App\Models\Course;
+use App\Services\CourseStatusService;
+use Auth;
 
 class StudentCourseController extends Controller
 {
@@ -50,9 +52,23 @@ class StudentCourseController extends Controller
         ]);
     }
 
-    public function show(int $id)
-    {
-        $course = Course::with(['categories' , 'attachments'])->available()->findOrFail($id);
-        return ApiResource::sendResponse("Course retrieved successfully.", new CourseResource($course));
-    }
+     public function show(int $id){
+         $course = Course::Where('is_published',true)->with([
+    'teacher',
+    'categories',
+    'attachments' => function($q) { $q->whereNull('section_id'); },
+    'sections.lessons.contents',
+    'sections.attachments',
+    'sections.lessons.studentProgress' => function ($query) {
+        $query->where('student_id', Auth::id());
+        },
+    'sections.quiz',
+    'sections.quiz.studentAttempts' => function ($q) { $q->where('student_id',Auth::id()); }
+    ])->available()->findOrFail($id);
+
+    CourseStatusService::refresh($course);
+
+    return ApiResource::sendResponse("Course retrieved successfully.", new CourseResource($course));
+     }
+
 }

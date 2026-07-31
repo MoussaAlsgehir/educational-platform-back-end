@@ -51,10 +51,8 @@ class ChunkUploadController extends Controller
             'is_full_hd'        => 'required|boolean'
         ]);
 
-        $lesson = Lesson::findOrFail($lessonId);
-
-        Gate::authorize('update', $lesson);
-
+         $lesson = Lesson::with('section.course')->findOrFail($lessonId);
+        Gate::authorize('update', $lesson->section->course);
         // تمرير المهمة الثقيلة للسيرفس
         $result = $this->chunkService->handleChunk(
             $request->upload_session_id,

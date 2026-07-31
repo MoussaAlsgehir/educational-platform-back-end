@@ -17,11 +17,16 @@ Route::middleware('role:instructor,super_admin,admin')->prefix('instructor')->gr
     Route::get('/courses', [InstructorCourseController::class, 'index']);
     Route::get('/courses/{id}', [InstructorCourseController::class, 'show']);
 
+    // نشر الكورس
+    Route::post('/courses/{course}/publish', [InstructorCourseController::class, 'publish']);
+
+    // تقديم الكورس للمراجعة
+    Route::post('courses/{course}/submit', [InstructorCourseController::class, 'submitForReview']);
     // الأقسام (Sections)
-    Route::get('courses/{courseId}/sections', [SectionController::class, 'index']);
-    Route::post('courses/{courseId}/sections', [SectionController::class, 'store']);
-    Route::get('courses/sections/{sectionId}', [SectionController::class, 'show']);
-    Route::put('courses/sections/{sectionId}', [SectionController::class, 'update']);
+    Route::get('courses/{courseId}/sections',     [SectionController::class, 'index']);
+    Route::post('courses/{courseId}/sections',    [SectionController::class, 'store']);
+    Route::get('courses/sections/{sectionId}',    [SectionController::class, 'show']);
+    Route::put('courses/sections/{sectionId}',    [SectionController::class, 'update']);
     Route::delete('courses/sections/{sectionId}', [SectionController::class, 'destroy']);
 
     // الدروس (Lessons)

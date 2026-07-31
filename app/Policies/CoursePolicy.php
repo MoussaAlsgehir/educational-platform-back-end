@@ -31,11 +31,19 @@ class CoursePolicy
      */
     public function update(User $user, Course $course)
     {
-        return $user->hasRole('instructor') && $course->teacher_id === $user->id;
+
+        $isOwner = $user->hasRole('instructor') && $course->teacher_id === $user->id;
+        $isEditable = !$course->is_published || $course->is_editable || $course->status !== 'completed';
+
+        return $isOwner && $isEditable;
+
     }
 
     public function delete(User $user, Course $course)
     {
-        return $user->hasRole('instructor') && $course->teacher_id === $user->id;
+        $isOwner = $user->hasRole('instructor') && $course->teacher_id === $user->id;
+        $isDeletable = !in_array($course->status, ['completed', 'active', 'upcoming']);
+
+        return $isOwner && $isDeletable;
     }
 }

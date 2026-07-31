@@ -31,11 +31,17 @@ class LessonPolicy
      */
     public function update(User $user, Lesson $lesson)
     {
-        return $user->hasRole('instructor') && $lesson->course->teacher_id === $user->id;
+        $isOwner = $user->hasRole('instructor') && $lesson->course->teacher_id === $user->id;
+        $isEditable = !$lesson->course->is_published || $lesson->course->is_editable || $lesson->course->status !== 'completed';
+
+        return $isOwner && $isEditable;
     }
 
     public function delete(User $user, Lesson $lesson)
     {
-        return $user->hasRole('instructor') && $lesson->course->teacher_id === $user->id;
+        $isOwner = $user->hasRole('instructor') && $lesson->course->teacher_id === $user->id;
+        $isDeletable = !in_array($lesson->course->status, ['completed', 'active', 'upcoming']);
+
+        return $isOwner && $isDeletable;
     }
 }

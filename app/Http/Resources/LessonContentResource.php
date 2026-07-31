@@ -9,51 +9,51 @@ class LessonContentResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        return [
-            'id'     => $this->id,
-            'type'   => $this->type,
-            'title'  => $this->title,
-            'order'  => $this->order,
-            'status' => $this->status,
+        $isAccessible = false;
 
-            // 1. حقول تظهر فـقـط إذا كان المحتوى مقال نصي (text_article)
-            $this->mergeWhen($this->type === 'text_article', [
-                'text_value' => $this->text_value,
-            ]),
+        if ($this->lesson && $this->lesson->section) {
+            $user = $request->user('sanctum');
+            $course = $this->lesson->section->course;
 
-            // 2. حقول تظهر فـقـط إذا كان المحتوى ملف مرفق (pdf)
-            $this->mergeWhen($this->type === 'pdf', [
-              'download_url' => $this->storage_key
-               ? rtrim(env('CLOUDFLARE_WORKER_URL'), '/') . '/' . $this->storage_key
-               : null,
-]),
-
-            // 3. حقول تظهر فـقـط إذا كان المحتوى فيديو (video)
-
-            $this->mergeWhen($this->type === 'video', [
-                'duration'     => $this->duration,
-                'playback_url' => $this->generateCloudflareWorkerUrl(), // 🔥 الرابط السحري الجديد
-            ]),
-        ];
-    }
-
-    /**
-     * بناء رابط التشغيل التكيفي (HLS) ليمر عبر حارس الحماية بـ Cloudflare Worker
-     */
-    private function generateCloudflareWorkerUrl(): ?string
-    {
-        // إذا الفيديو لسا عم يتجفز (Processing) أو ما له مسار، ما بترجع رابط
-        if ($this->status !== 'ready' || !$this->storage_key) {
-            return null;
+            // 1. إذا الدرس مجاني (بريفيو)
+            if ($this->lesson->is_preview) {
+                $isAccessible = true;
+            }
+            // 2. إذا المستخدم أدمن أو المدرس صاحب الكورس
+            elseif ($user && ($user->isAdmin() || $course->teacher_id === $user->id)) {
+                $isAccessible = true;
+            }
+            // 3. إذا الطالب مشترك بالكورس
+            elseif ($user && $course->students()->where('student_id', $user->id)->exists()) {
+                $isAccessible = true;
+            }
         }
 
-        // 1. جلب رابط الـ Cloudflare Worker من ملف الـ .env وتنظيفه
-        $workerUrl = rtrim(env('CLOUDFLARE_WORKER_URL'), '/');
+        $data = [
+            'id' => $this->id,
+            'type' => $this->type,
+            'title' => $this->title,
+            'order' => $this->order,
+            'status' => $this->status,
+        ];
 
-        // 2. تنظيف الـ storage_key (مسار ملف master.m3u8 المخزن بالـ DB) من أي سكور زائد في أوله
-        $videoPath = ltrim($this->storage_key, '/');
+        // النص يظهر للجميع
+        if ($this->type === 'text_article') {
+            $data['text_value'] = $this->text_value;
+        }
 
-        // 3. دمجهم ليطلع رابط نظيف، سريع، ومحمي يمر عبر الـ CDN دغري
-        return "{$workerUrl}/{$videoPath}";
+        // الفيديو والـ PDF يظهروا فقط إذا كان $isAccessible = true
+        if ($isAccessible) {
+            if ($this->type === 'pdf') {
+                $data['download_url'] = $this->storage_key
+                    ? rtrim(env('CLOUDFLARE_WORKER_URL'), '/') . '/' . $this->storage_key
+                    : null;
+            } elseif ($this->type === 'video' && $this->status === 'ready') {
+                $data['duration'] = $this->duration;
+                $data['playback_url'] = rtrim(env('CLOUDFLARE_WORKER_URL'), '/') . '/' . $this->storage_key;
+            }
+        }
+
+        return $data;
     }
 }

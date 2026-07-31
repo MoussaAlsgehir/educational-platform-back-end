@@ -8,51 +8,66 @@ use Illuminate\Support\Facades\Storage;
 
 class CourseResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
+        // 1. نفحص إذا الطالب الحالي مشترك بالكورس (إذا كان مسجل دخول)
+               $isEnrolled = false;
+        $user = $request->user('sanctum');
+        if ($user) {
+            if ($user->isAdmin() || $this->teacher_id === $user->id) {
+                $isEnrolled = true;
+            } else {
+                $isEnrolled = $this->students()->where('student_id', $user->id)->exists();
+
+            }
+        }
         return [
             'id' => $this->id,
             'title' => $this->title,
             'description' => $this->description,
-            'course_type' => $this->course_type,
+            'course_type' => $this->course_type, // quiz_based, attendance_only
+            'publish_type' => $this->publish_type, // live, on_demand
+            'navigation_type' => $this->navigation_type, // free, sequential
             'price' => $this->price,
-            'category_names' => $this->WhenLoaded('categories', function () {
-                return $this->categories->pluck('name');
-            }),
-            'status' => $this->status,
-            'category_ids' => $this->WhenLoaded('categories', function () {
-                return $this->categories->pluck('id');
-            }),
+            'status' => $this->status, // upcoming, active, completed...
+            'is_published' => $this->is_published,
             'start_date' => $this->start_date,
             'end_date' => $this->end_date,
             'certificate_attendance_threshold' => $this->certificate_attendance_threshold,
             'cover_image' => $this->cover_image ? asset(Storage::url($this->cover_image)) : null,
-            'attachments' => $this->whenLoaded('attachments', function () {
-                // نرجع فقط المرفقات التي لا تتبع لقسم معين (مرفقات الكورس العامة)
-                return $this->attachments->whereNull('section_id')->map(function ($attachment) {
-                    $url = $attachment->file_url;
+            'is_enrolled' => $isEnrolled,
 
-                    // تركيب رابط الـ Worker إذا كان ملف
-                    if ($attachment->type !== 'link' && $url && !filter_var($url, FILTER_VALIDATE_URL)) {
-                        $workerUrl = rtrim(env('CLOUDFLARE_WORKER_URL'), '/');
-                        $url = "{$workerUrl}/{$url}";
+
+            'teacher' => new UserResource($this->whenLoaded('teacher')),
+            'categories' => $this->whenLoaded('categories', function () {
+                return $this->categories->pluck('name');
+            }),
+
+                     // المرفقات العامة للكورس
+            'attachments' => $this->whenLoaded('attachments', function () use ($isEnrolled) {
+                return $this->attachments->whereNull('section_id')->map(function ($attachment) use ($isEnrolled) {
+                    $url = null;
+
+                    //  رابط المرفق يظهر بس للمشتركين
+                    if ($isEnrolled) {
+                        $url = $attachment->file_url;
+                        if ($attachment->type !== 'link' && $url && !filter_var($url, FILTER_VALIDATE_URL)) {
+                            $url = rtrim(env('CLOUDFLARE_WORKER_URL'), '/') . '/' . $url;
+                        }
                     }
 
                     return [
                         'id' => $attachment->id,
                         'title' => $attachment->title,
                         'type' => $attachment->type,
+                        'is_locked' => !$isEnrolled,
                         'url' => $url,
                     ];
                 })->values();
             }),
 
-            'teacher' => new UserResource($this->teacher()->first()),
+
+            'sections' => SectionResource::collection($this->whenLoaded('sections')),
         ];
     }
 }

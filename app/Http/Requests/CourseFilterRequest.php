@@ -16,7 +16,7 @@ class CourseFilterRequest extends FormRequest
         return [
             'search'       => 'nullable|string|max:255',
             'category_ids' => 'nullable|array',
-            'category_ids.*' => 'nullable|exists:categories,id',
+            'category_ids.*' => 'nullable|integer|',
             'status'       => 'nullable|in:active,upcoming,completed',
             'min_price'    => 'nullable|numeric|min:0',
             'max_price'    => 'nullable|numeric|min:0',

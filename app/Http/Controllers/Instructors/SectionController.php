@@ -39,25 +39,37 @@ class SectionController extends Controller
     }
 
 
-    public function store(Request $request, int $courseId)
+      public function store(Request $request, int $courseId)
     {
         $course = Course::findOrFail($courseId);
-        //return response()->json;
+        Gate::authorize('update', $course);
 
+        // 2. منع إضافة قسم جديد بترتيب قبل القسم الأول (للكورسات الـ Live بعد النشر)
+        $firstSection = $course->sections()->orderBy('order', 'asc')->first();
+        if ($course->publish_type === 'live' && $course->is_published && $request->input('order', ($firstSection->order ?? 0) + 1) <= ($firstSection->order ?? 0)) {
+            return ApiResource::sendResponse("Cannot add sections before the first section in a published Live course.", null, 422);
+        }
 
-            Gate::authorize('update', [Course::class, $course]);
+        // 3. إجبار الكويز للقسم السابق (للكورسات الـ Live التسلسلية أثناء فترة الـ Active)
+        if ($course->publish_type === 'live' && $course->status === 'active' && $course->navigation_type === 'sequential') {
+            $lastSection = $course->sections()->orderBy('order', 'desc')->first();
+            if ($lastSection && !$lastSection->quiz) {
+                return ApiResource::sendResponse(
+                    "Cannot add a new section: The previous section '{$lastSection->title}' must have a quiz before adding a new one.",
+                    null, 422
+                );
+            }
+        }
+
         $data = $request->validate([
             'title' => 'required|string|max:255',
             'order' => 'nullable|integer',
         ]);
 
-
-
         $section = $this->sectionService->createSection($course, $data);
 
         return ApiResource::sendResponse("Section created successfully.", new SectionResource($section));
     }
-
     public function update(Request $request,int $sectionId)
     {
         $section = Section::findOrFail($sectionId);

@@ -30,6 +30,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // تسجيل الخروج
     Route::post('/logout', [AuthController::class, 'logout']);
 
+   // عرض كل الenpoint المتاحة لجميع الأدوار
+
+
+
+
     /* --- 3. استدعاء بقية الملفات المفصولة داخل الميدلواير المحمي --- */
     require __DIR__ . '/api/admin.php';
     require __DIR__ . '/api/instructor.php';

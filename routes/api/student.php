@@ -7,16 +7,23 @@ use App\Http\Controllers\Platform_learnova\QuizzController;
 use App\Http\Controllers\Platform_learnova\QuestionController;
 use App\Http\Controllers\Platform_learnova\QuizAttemptController;
 use App\Http\Controllers\Students\CourseReviewController;
+use App\Http\Controllers\Students\EnrollmentController;
+use App\Http\Controllers\Students\WalletController;
 use Illuminate\Support\Facades\Route;
 
 // مسارات الطلاب لاستعراض المحتوى التعليمي والتصنيفات والدورات المتاحة
 Route::middleware('role:student,super_admin')->prefix('student')->group(function () {
-   
+
 
     Route::prefix('reviews')->controller(CourseReviewController::class)->group(function () {
         Route::post('/', 'store');                // student/reviews
         Route::post('{id}/delete', 'destroy'); // student/reviews/{id}/delete
     });
+
+    Route::get('/wallet/balance', [WalletController::class, 'balance']);
+
+    //  الاشتراك بالكورس
+    Route::post('/courses/{course}/enroll', [EnrollmentController::class, 'enroll']);
 });
 
 // استعراض الكويزات (متاح للجميع بمن فيهم الطلاب)

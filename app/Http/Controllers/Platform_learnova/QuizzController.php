@@ -36,6 +36,11 @@ class QuizzController extends Controller
     {
         $section = Section::with('course')->findOrFail($sectionId);
 
+        //هنا الاضافة فقط لمنع الكويزات اذا كان الكورس من النوع المشاهدة فقط
+     if ($section->course->course_type === 'attendance_only') {
+            return ApiResource::sendResponse("Cannot add quizzes to an attendance-only course.", null, 422);
+        }
+
         // التحقق من الملكية: هل المدرس الحالي هو صاحب الكورس؟
         if (Auth::user()->hasRole('instructor') && $section->course->teacher_id !== auth()->id()) {
             return ApiResource::sendResponse("You do not have permission to add a quiz to this course.", null, 403);

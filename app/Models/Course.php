@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
+
 class Course extends Model
 {
 
@@ -28,6 +29,12 @@ class Course extends Model
         'price',
         'course_type',
         'status',
+        'is_published',
+        'navigation_type',
+        'rejection_reason',
+        'publish_type',
+        'expected_sections_count',
+        'is_editable',
     ];
 
 

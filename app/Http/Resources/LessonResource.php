@@ -2,27 +2,45 @@
 
 namespace App\Http\Resources;
 
-use App\Models\LessonContent;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-
 class LessonResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
+        $isAccessible = false;
+
+        $user = $request->user('sanctum');
+
+        if ($user) {
+            $course = $this->section->course;
+
+            // فحص إذا كان أدمن أو المدرس صاحب الكورس
+            if ($user->isAdmin() || $course->teacher_id === $user->id) {
+                $isAccessible = true;
+            }
+            // فحص إذا كان طالب مشترك
+            elseif ($course->students()->where('student_id', $user->id)->exists()) {
+                $isAccessible = true;
+            }
+        }
+
+        $isAccessible = $isAccessible || $this->is_preview;
+        $studentProgress = $this->studentProgress()->first();
+
         return [
             'id' => $this->id,
-            'section_id' => $this->section_id,
             'title' => $this->title,
-            'lesson_contents' => LessonContentResource::collection($this->whenLoaded('contents')),
             'order' => $this->order,
-            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
-        ] ;
+            'is_preview' => $this->is_preview,
+            'is_locked' => !$isAccessible,
+              'progress' => [
+                'watched_seconds' => $studentProgress ? $studentProgress->watched_seconds : 0,
+                'is_completed' => $studentProgress ? $studentProgress->is_completed : false,
+            ],
+
+            'contents' => LessonContentResource::collection($this->whenLoaded('contents')),
+        ];
     }
 }
