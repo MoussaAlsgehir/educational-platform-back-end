@@ -14,7 +14,7 @@ public function rules(): array
 {
 return [
 'course_id' => ['required', 'integer', 'exists:courses,id'],
-'quizz_id' => ['required', 'integer', 'exists:quizzes,id'],
+'quizz_id' => ['required', 'integer', 'exists:quizzs,id'],
 ];
 }
 }
