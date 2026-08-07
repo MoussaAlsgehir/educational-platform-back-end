@@ -23,6 +23,8 @@ class CertificatePdfService
         $data = [
             'student_name'  => $certificate->student->name ?? 'Student Name',
             'course_title'  => $certificate->course->title ?? 'Course Title',
+            'teacher_name'  => $certificate->course->teacher->fullname ?? 'Course Title',
+
             'issued_date'   => $certificate->issued_at ? $certificate->issued_at->format('Y-m-d') : now()->format('Y-m-d'),
             'serial_number' => $serialNumber,
         ];
