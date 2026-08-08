@@ -112,7 +112,9 @@ class LessonProgressController extends Controller
 
             // استدعاء الخدمة للتحقق والإنشاء التلقائي
             $this->certificateGenerator->generateCertificateIfAllLessonsCompleted($studentId, $courseId);
-        } catch (\Exception $e) {
+            Auth::user()->courses()->wherePivot('course_id',$courseId)->update(['is_completed'=>true]);
+            
+            } catch (\Exception $e) {
             Log::error("خطأ في إنشاء الشهادة تلقائياً: " . $e->getMessage());
         }
     }

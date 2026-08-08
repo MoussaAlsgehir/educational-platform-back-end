@@ -7,6 +7,7 @@ use App\Http\Controllers\Admins\DashboardController;
 use App\Http\Controllers\Platform_learnova\AdminManagementController;
 use App\Http\Controllers\Platform_learnova\RoleController;
 use App\Http\Controllers\Platform_learnova\CertificateController;
+use App\Http\Controllers\Platform_learnova\UserController;
 use Illuminate\Support\Facades\Route;
 
 // مسارات الإدارة المطلقة (Super Admin Only)
@@ -26,7 +27,7 @@ Route::middleware('role:super_admin')->group(function () {
 // مسارات الإدارة المشتركة (Super Admin & Admin)
 Route::middleware('role:super_admin,admin')->group(function () {
 
-    Route::apiResource('categories', CategoryController::class);// مسارات CRUD للكورسات (الإدارة فقط)
+    Route::apiResource('categories', CategoryController::class); // مسارات CRUD للكورسات (الإدارة فقط)
 
     // 1. جلب كل الكورسات المعلقة (بانتظار المراجعة)
     Route::get('courses/pending', [AdminCourseController::class, 'pending']);
@@ -38,7 +39,7 @@ Route::middleware('role:super_admin,admin')->group(function () {
     Route::post('courses/{course}/reject', [AdminCourseController::class, 'reject']);
 
     // 4. مسارات إدارة المحفظة (Wallet Management)
-     Route::post('wallets/top-up', [AdminWalletController::class, 'topUp']); // مسار شحن المحفظة للطالب
+    Route::post('wallets/top-up', [AdminWalletController::class, 'topUp']); // مسار شحن المحفظة للطالب
 
     Route::apiResource('categories', CategoryController::class);
 
@@ -49,4 +50,13 @@ Route::middleware('role:super_admin,admin')->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'getDashboardStatistics']);
 
+
+    Route::prefix('users')->controller(UserController::class)->group(function () {
+
+        Route::get('/', 'getUserById');
+        Route::get('/all', 'getUsers');
+        Route::post('/delete','destroy');
+        Route::post('/change-role','changeStatusUser');
+        Route::post('/update','update');
+    });
 });
