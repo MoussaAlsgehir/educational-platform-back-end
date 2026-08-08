@@ -9,6 +9,7 @@ use App\Http\Controllers\Platform_learnova\QuestionController;
 use App\Http\Controllers\Platform_learnova\QuizAttemptController;
 use App\Http\Controllers\Students\CourseReviewController;
 use App\Http\Controllers\Students\EnrollmentController;
+use App\Http\Controllers\Students\InstructorRequestController;
 use App\Http\Controllers\Students\WalletController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +26,12 @@ Route::middleware('role:student,super_admin')->prefix('student')->group(function
 
     //  الاشتراك بالكورس
     Route::post('/courses/{course}/enroll', [EnrollmentController::class, 'enroll']);
+
+    Route::post('/instructor-request', [InstructorRequestController::class, 'store']);
+
+    Route::put('/instructor-request/{id}', [InstructorRequestController::class, 'update']);
+
+    Route::delete('/instructor-request/{id}', [InstructorRequestController::class, 'destroy']);
 });
 
 // استعراض الكويزات (متاح للجميع بمن فيهم الطلاب)

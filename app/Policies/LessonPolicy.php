@@ -18,21 +18,16 @@ class LessonPolicy
         }
     }
 
-    /**
-     * نغلة الـ Create: بنمرر كائن الكورس الأب لنشيك على ملكيته قبل إضافة أي درس جواته
-     */
     public function create(User $user, Course $course)
     {
         return $user->hasRole('instructor') && $course->teacher_id === $user->id;
     }
 
-    /**
-     * تعديل الدرس أو حذفه يعتمد على ملكية المدرس للكورس الأب للدرس الحالي
-     */
     public function update(User $user, Lesson $lesson)
     {
         $isOwner = $user->hasRole('instructor') && $lesson->course->teacher_id === $user->id;
-        $isEditable = !$lesson->course->is_published || $lesson->course->is_editable || $lesson->course->status !== 'completed';
+
+        $isEditable = !$lesson->course->is_published || $lesson->course->is_editable;
 
         return $isOwner && $isEditable;
     }
@@ -40,7 +35,8 @@ class LessonPolicy
     public function delete(User $user, Lesson $lesson)
     {
         $isOwner = $user->hasRole('instructor') && $lesson->course->teacher_id === $user->id;
-        $isDeletable = !in_array($lesson->course->status, ['completed', 'active', 'upcoming']);
+
+        $isDeletable = !$lesson->course->is_published || $lesson->course->is_editable;
 
         return $isOwner && $isDeletable;
     }

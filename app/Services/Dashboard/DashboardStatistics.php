@@ -5,6 +5,7 @@ namespace App\Services\Dashboard;
 use App\Models\Course;
 use App\Models\CourseCategory;
 use App\Models\Enrollment;
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -31,7 +32,13 @@ class DashboardStatistics
     }
     public function getTotalRevenue()
     {
-        return 0;
+
+        $totalPointsSpent = Transaction::where('direction', 'debit')
+            ->where('transaction_type', 'course_purchase')
+            ->sum('amount');
+
+        // نضربها بـ 2 ليرة (أرباح المنصة الصافية من كل نقطة)
+        return $totalPointsSpent * 2;
     }
 
     public function popularCategory()
@@ -115,10 +122,14 @@ class DashboardStatistics
     }
 
     public function getModerationQueueCourse(){
-        return 0;
+
+        return Course::where('status','pending')->count();
+
     }
 
     public function getPublishedCourses(){
-        return 0;
+
+        return Course::where('is_published',true)->count();
+        
     }
     }

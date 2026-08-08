@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admins\AdminCourseController;
+use App\Http\Controllers\Admins\AdminInstructorRequestController;
 use App\Http\Controllers\Admins\AdminWalletController;
 use App\Http\Controllers\Admins\CategoryController;
 use App\Http\Controllers\Admins\DashboardController;
@@ -38,8 +39,26 @@ Route::middleware('role:super_admin,admin')->group(function () {
     // 3. رفض كورس معين (لازم يبعت معه reason بالندي)
     Route::post('courses/{course}/reject', [AdminCourseController::class, 'reject']);
 
+    // فتح/إغلاق التعديل
+    Route::post('courses/{course}/toggle-edit', [AdminCourseController::class, 'toggleEdit']);
+
+    // إخفاء/إظهار الكورس
+    Route::post('courses/{course}/toggle-visibility', [AdminCourseController::class, 'toggleVisibility']);
+
+
     // 4. مسارات إدارة المحفظة (Wallet Management)
     Route::post('wallets/top-up', [AdminWalletController::class, 'topUp']); // مسار شحن المحفظة للطالب
+
+     Route::get('withdrawals/pending', [AdminWalletController::class, 'pending']);
+
+     Route::post('withdrawals/{withdrawal}/approve', [AdminWalletController::class, 'approve']);
+
+     Route::post('withdrawals/{withdrawal}/reject', [AdminWalletController::class, 'reject']);
+
+     Route::get('financial-report', [AdminWalletController::class, 'getFinancialReport']); // مسار جلب التقارير المالية (إجمالي المبالغ، الطلبات المعلقة، الطلبات المقبولة، الطلبات المرفوضة)
+
+// استعراض المعاملات المالية مع الفلترة
+    Route::get('wallets/transactions', [AdminWalletController::class, 'transactions']);
 
     Route::apiResource('categories', CategoryController::class);
 
@@ -59,4 +78,11 @@ Route::middleware('role:super_admin,admin')->group(function () {
         Route::post('/change-role','changeStatusUser');
         Route::post('/update','update');
     });
+    // مسارات الطلبات للمعلم
+    Route::get('instructor-requests/pending', [AdminInstructorRequestController::class, 'pending']);
+
+    Route::post('instructor-requests/{instructorRequest}/review', [AdminInstructorRequestController::class, 'review']);
+
+    Route::get('instructor-requests', [AdminInstructorRequestController::class, 'index']);
+
 });

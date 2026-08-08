@@ -13,6 +13,7 @@ use App\Services\CourseService;
 use App\Services\CourseStatusService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use PHPUnit\TextUI\Help;
 
 class InstructorCourseController extends Controller
@@ -59,19 +60,25 @@ class InstructorCourseController extends Controller
     }
 
 
-
-    /**
-     * Update the specified course in storage.
-     */
-    public function update()
+    public function update(CourseRequest $request, Course $course)
     {
+        Gate::authorize('update', $course);
 
+        $data = $request->validated();
 
+        if ($request->hasFile('cover_image')) {
+            if ($course->cover_image && $course->cover_image !== 'course_covers/default.png') {
+                Storage::disk('public')->delete($course->cover_image);
+            }
+            $data['cover_image'] = $request->file('cover_image')->store('course_covers', 'public');
+        }
+
+        $updatedCourse = $this->courseService->updateCourse($course, $data);
+
+        return ApiResource::sendResponse("Course updated successfully.", new CourseResource($updatedCourse));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+
     public function destroy(Course $course)
     {
         Gate::authorize('delete',$course);

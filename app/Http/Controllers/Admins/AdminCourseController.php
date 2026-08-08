@@ -13,7 +13,7 @@ class AdminCourseController extends Controller
 {
     public function pending()
     {
-        $courses = Course::where('status', 'pending')->with('teacher')->latest()->get();
+        $courses = Course::where('status', 'pending')->with('teacher', 'categories', 'sections.lessons.contents')->latest()->get();
         return ApiResource::sendResponse("Pending courses retrieved.", CourseResource::collection($courses));
     }
 
@@ -40,6 +40,38 @@ class AdminCourseController extends Controller
             'status' => 'rejected',
             'rejection_reason' => $request->rejection_reason
         ]);
-        return ApiResource::sendResponse("Course rejected successfully.", new CourseResource($course));
+        return ApiResource::sendResponse("Course rejected successfully.", ['Rejection Reason' => $course->rejection_reason]);
+    }
+
+
+
+    /**
+     * فتح أو إغلاق صلاحية التعديل للكورس (استثناء إداري)
+     */
+    public function toggleEdit(Course $course)
+    {
+        $course->is_editable = !$course->is_editable;
+        $course->save();
+
+        $status = $course->is_editable ? 'enabled' : 'disabled';
+        return ApiResource::sendResponse("Course editing has been {$status} for the instructor.", $course);
+    }
+
+    /**
+     * إخفاء أو إظهار الكورس
+     */
+    public function toggleVisibility(Course $course)
+    {
+        if ($course->status === 'hidden') {
+        CourseStatusService::refresh($course);
+            $msg = "Course is now visible.";
+        }
+        else {
+            $course->status = 'hidden';
+            $course->save();
+            $msg = "Course is now hidden from public catalog.";
+        }
+
+        return ApiResource::sendResponse($msg, $course->refresh());
     }
 }

@@ -10,7 +10,7 @@ class CourseService
         $courseType = $data['course_type'] ?? 'quiz_based';
         $navigationType = $data['navigation_type'] ?? 'free';
 
-       
+
         if ($courseType === 'attendance_only') {
             $navigationType = 'free';
         }
@@ -36,5 +36,21 @@ class CourseService
         }
 
         return $course;
+    }
+
+
+    public function updateCourse(Course $course, array $data): Course
+    {
+        if (isset($data['course_type']) && $data['course_type'] === 'attendance_only') {
+            $data['navigation_type'] = 'free';
+        }
+
+        $course->update($data);
+
+        if (isset($data['category_ids'])) {
+            $course->categories()->sync($data['category_ids']);
+        }
+
+        return $course->refresh();
     }
 }

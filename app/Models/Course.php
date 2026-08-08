@@ -89,7 +89,7 @@ class Course extends Model
 
     public function scopeAvailable($query)
     {
-        return $query->whereNotIn('status', ['pending', 'rejected']);
+        return $query->whereNotIn('status', ['pending', 'rejected','draft','hidden']);
     }
     public function scopeStatusFilter($query,$status)
     {

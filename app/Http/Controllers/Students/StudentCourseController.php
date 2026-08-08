@@ -9,6 +9,7 @@ use App\Http\Resources\CourseResource;
 use App\Models\Course;
 use App\Services\CourseStatusService;
 use Auth;
+use Illuminate\Http\Request;
 
 class StudentCourseController extends Controller
 {
@@ -16,7 +17,7 @@ class StudentCourseController extends Controller
     public function index(CourseFilterRequest $request)
     {
 
-        $query = Course::query()->with(['categories' , 'attachments']);
+        $query = Course::query()->with(['categories' , 'attachments'])->available();
 
 
         $query->search($request->search)
@@ -52,7 +53,7 @@ class StudentCourseController extends Controller
         ]);
     }
 
-     public function show(int $id){
+     public function show(Request $request,int $id){
          $course = Course::Where('is_published',true)->with([
     'teacher',
     'categories',
@@ -65,6 +66,19 @@ class StudentCourseController extends Controller
     'sections.quiz',
     'sections.quiz.studentAttempts' => function ($q) { $q->where('student_id',Auth::id()); }
     ])->available()->findOrFail($id);
+
+    
+     if ($course->status === 'hidden') {
+            $user = $request->user('sanctum');
+
+            $isEnrolled = $user ? $course->students()->where('student_id', $user->id)->exists() : false;
+            $isOwnerOrAdmin = $user ? ($user->isAdmin() || $course->teacher_id === $user->id) : false;
+
+            if (!$isEnrolled && !$isOwnerOrAdmin) {
+                return ApiResource::sendResponse("This course is currently not available.", null, 404);
+            }
+        }
+
 
     CourseStatusService::refresh($course);
 
