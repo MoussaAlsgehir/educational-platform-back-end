@@ -18,32 +18,31 @@ class CoursePolicy
         }
     }
 
-    /**
-     * هل مسموح للمستخدم إنشاء كورس؟
-     */
     public function create(User $user)
     {
         return $user->hasRole('instructor');
     }
 
-    /**
-     * هل المدرس الحالي هو صاحب الكورس ليعدله؟
-     */
     public function update(User $user, Course $course)
     {
-
         $isOwner = $user->hasRole('instructor') && $course->teacher_id === $user->id;
-        $isEditable = !$course->is_published || $course->is_editable || $course->status !== 'completed';
+
+        $isEditable = !$course->is_published || $course->is_editable;
 
         return $isOwner && $isEditable;
-
     }
 
     public function delete(User $user, Course $course)
     {
         $isOwner = $user->hasRole('instructor') && $course->teacher_id === $user->id;
-        $isDeletable = !in_array($course->status, ['completed', 'active', 'upcoming']);
+
+        $isDeletable = $course->status=='draft' ;
 
         return $isOwner && $isDeletable;
+    }
+
+    public function view(User $user, Course $course)
+    {
+        return $user->hasRole('instructor') && $course->teacher_id === $user->id;
     }
 }

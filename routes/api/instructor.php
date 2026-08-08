@@ -6,6 +6,7 @@ use App\Http\Controllers\Instructors\LessonController;
 use App\Http\Controllers\Instructors\LessonContentController;
 use App\Http\Controllers\Instructors\ChunkUploadController;
 use App\Http\Controllers\Instructors\CourseAttachmentController;
+use App\Http\Controllers\Instructors\WithdrawalController;
 use App\Http\Controllers\Platform_learnova\QuizzController;
 use App\Http\Controllers\Platform_learnova\QuestionController;
 use Illuminate\Support\Facades\Route;
@@ -14,8 +15,10 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('role:instructor,super_admin,admin')->prefix('instructor')->group(function () {
     // الكورسات
     Route::post('/courses', [InstructorCourseController::class, 'store']);
+    Route::put('/courses/{id}',[InstructorCourseController::class, 'update']);
     Route::get('/courses', [InstructorCourseController::class, 'index']);
     Route::get('/courses/{id}', [InstructorCourseController::class, 'show']);
+    Route::delete('/courses/{id}',[InstructorCourseController ::class, 'destroy']);
 
     // نشر الكورس
     Route::post('/courses/{course}/publish', [InstructorCourseController::class, 'publish']);
@@ -49,6 +52,10 @@ Route::middleware('role:instructor,super_admin,admin')->prefix('instructor')->gr
     Route::get('courses/attachments/{attachmentId}',  [CourseAttachmentController::class, 'show']);
     Route::post('courses/{courseId}/attachments', [CourseAttachmentController::class, 'store']);
     Route::delete('courses/attachments/{attachmentId}',   [CourseAttachmentController::class, 'destroy']);
+
+    // مسارات طلبات السحب (Withdrawal Requests)
+    Route::get('withdrawals', [WithdrawalController::class, 'index']);
+    Route::post('withdrawals', [WithdrawalController::class, 'store']);
 });
 
 // مسارات الـ Quizzs الخاصة بالمدربين والإدارة والتعديل عليها
