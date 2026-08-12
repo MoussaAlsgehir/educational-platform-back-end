@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Students;
 
 use App\Http\Controllers\Controller;
 use App\Helpers\ApiResource;
+use App\Http\Resources\NoteResource;
 use App\Models\StudentNote;
 use App\Models\Lesson;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 
 class NoteController extends Controller
@@ -21,8 +23,11 @@ class NoteController extends Controller
             ->with('student:id,first_name,last_name,avatar_url')
             ->orderBy('video_timestamp_seconds', 'asc')
             ->get();
+            if ($notes->isEmpty()) {
+                return ApiResource::sendResponse("No public notes found for this lesson.", null, 404);
+            }
 
-        return ApiResource::sendResponse("Public notes retrieved successfully.", $notes);
+        return ApiResource::sendResponse("Public notes retrieved successfully.", NoteResource::collection($notes));
     }
 
 
@@ -33,7 +38,11 @@ class NoteController extends Controller
             ->orderBy('created_at', 'asc')
             ->get();
 
-        return ApiResource::sendResponse("Private notes retrieved successfully.", $notes);
+        if ($notes->isEmpty()) {
+            return ApiResource::sendResponse("No private notes found.", null, 404);
+        }
+
+        return ApiResource::sendResponse("Private notes retrieved successfully.", NoteResource::collection($notes));
     }
 
 
@@ -55,7 +64,7 @@ class NoteController extends Controller
             'is_private' => $request->has('is_private') ? $request->is_private : true,
         ]);
 
-        return ApiResource::sendResponse("Note added successfully.", $note, 201);
+        return ApiResource::sendResponse("Note added successfully.", new NoteResource($note, 201));
     }
 
     public function linkToPrivate(int $noteId)
@@ -83,7 +92,7 @@ class NoteController extends Controller
             'is_private' => true, // جعلها خاصة
         ]);
 
-        return ApiResource::sendResponse("Note linked to your private notebook.", $privateNote, 201);
+        return ApiResource::sendResponse("Note linked to your private notebook.", new NoteResource($privateNote), 201);
     }
 
 
@@ -101,7 +110,7 @@ class NoteController extends Controller
 
         $note->update($request->only('note_text'));
 
-        return ApiResource::sendResponse("Note updated successfully.", $note);
+        return ApiResource::sendResponse("Note updated successfully.", new NoteResource($note), 200);
     }
 
 
