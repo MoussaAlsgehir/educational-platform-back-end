@@ -6,6 +6,7 @@ use App\Http\Controllers\Instructors\LessonController;
 use App\Http\Controllers\Instructors\LessonContentController;
 use App\Http\Controllers\Instructors\ChunkUploadController;
 use App\Http\Controllers\Instructors\CourseAttachmentController;
+use App\Http\Controllers\Instructors\DiscountController;
 use App\Http\Controllers\Instructors\WithdrawalController;
 use App\Http\Controllers\Platform_learnova\QuizzController;
 use App\Http\Controllers\Platform_learnova\QuestionController;
@@ -56,6 +57,10 @@ Route::middleware('role:instructor,super_admin,admin')->prefix('instructor')->gr
     // مسارات طلبات السحب (Withdrawal Requests)
     Route::get('withdrawals', [WithdrawalController::class, 'index']);
     Route::post('withdrawals', [WithdrawalController::class, 'store']);
+
+    Route::get('discounts', [DiscountController::class, 'index']);
+    Route::post('courses/{course}/discounts', [DiscountController::class, 'store']);
+    Route::delete('discounts/{discount}', [DiscountController::class, 'destroy']);
 });
 
 // مسارات الـ Quizzs الخاصة بالمدربين والإدارة والتعديل عليها

@@ -13,6 +13,8 @@ use App\Models\Answer;
 use App\Models\CourseAttachment;
 use App\Models\User;
 use App\Models\Category;
+use App\Models\CourseDiscount;
+use App\Models\StudentNote;
 
 class CourseSeeder extends Seeder
 {
@@ -169,6 +171,57 @@ class CourseSeeder extends Seeder
                     'is_correct' => $aData['is_correct'],
                 ]);
             }
+        }
+
+                // ✨ 6. إضافة بيانات الخصومات (Discounts)
+        // خصم موافق عليه ودائم (عشان يظهر بالـ pricing بالـ Response)
+        CourseDiscount::create([
+            'course_id' => $course->id,
+            'percentage' => 20.00,
+            'status' => 'approved',
+            'type' => 'permanent',
+            'starts_at' => null,
+            'ends_at' => null,
+        ]);
+
+        // خصم معلق بانتظار موافقة الإدارة (عشان تختبر الـ Admin Endpoints)
+        CourseDiscount::create([
+            'course_id' => $course->id,
+            'percentage' => 15.00,
+            'status' => 'pending',
+            'type' => 'limited',
+            'starts_at' => now()->addDays(2),
+            'ends_at' => now()->addDays(10),
+        ]);
+
+        // ✨ 7. تسجيل طالب في الكورس (Enrollment)
+        // بنفترض إنه الطالب رقم 2 (Ahmed) يلي موجود بالـ StudentSeeder
+        $student = User::whereHas('roles', fn($q) => $q->where('name', 'student'))->first();
+        if ($student) {
+            $course->students()->syncWithoutDetaching([
+                $student->id => [
+                    'attendance_percentage' => 50,
+                    'is_completed' => false,
+                 
+                ]
+            ]);
+
+            // ✨ 8. إضافة ملاحظات الفيديو (Notes)
+            StudentNote::create([
+                'student_id' => $student->id,
+                'lesson_id' => $lesson1->id,
+                'note_text' => 'ملاحظة خاصة: مراجعة دالة الـ API في الدقيقة 2',
+                'video_timestamp_seconds' => 120,
+                'is_private' => true,
+            ]);
+
+            StudentNote::create([
+                'student_id' => $student->id,
+                'lesson_id' => $lesson1->id,
+                'note_text' => 'ملاحظة عامة: هذا الدرس مهم جداً للامتحان',
+                'video_timestamp_seconds' => 60,
+                'is_private' => false, // عامة ليشوفها باقي الطلاب
+            ]);
         }
     }
 }

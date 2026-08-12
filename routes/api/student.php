@@ -10,6 +10,7 @@ use App\Http\Controllers\Platform_learnova\QuizAttemptController;
 use App\Http\Controllers\Students\CourseReviewController;
 use App\Http\Controllers\Students\EnrollmentController;
 use App\Http\Controllers\Students\InstructorRequestController;
+use App\Http\Controllers\Students\NoteController;
 use App\Http\Controllers\Students\WalletController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,6 +25,7 @@ Route::middleware('role:student,super_admin')->prefix('student')->group(function
 
     Route::get('/wallet/balance', [WalletController::class, 'balance']);
 
+    Route::get('/courses/my-courses/show', [StudentCourseController::class, 'myCourses']);
     //  الاشتراك بالكورس
     Route::post('/courses/{course}/enroll', [EnrollmentController::class, 'enroll']);
 
@@ -32,6 +34,18 @@ Route::middleware('role:student,super_admin')->prefix('student')->group(function
     Route::put('/instructor-request/{id}', [InstructorRequestController::class, 'update']);
 
     Route::delete('/instructor-request/{id}', [InstructorRequestController::class, 'destroy']);
+
+
+
+    Route::get('lessons/{lessonId}/notes/public', [NoteController::class, 'publicNotes']);
+    Route::get('lessons/notes/private', [NoteController::class, 'privateNotes']);
+    Route::post('lessons/{lessonId}/notes', [NoteController::class, 'store']);
+
+    // ربط ملاحظة عامة بدفترك الخاص
+    Route::post('notes/{noteId}/link', [NoteController::class, 'linkToPrivate']);
+
+    Route::put('notes/{noteId}', [NoteController::class, 'update']);
+    Route::delete('notes/{noteId}', [NoteController::class, 'destroy']);
 });
 
 // استعراض الكويزات (متاح للجميع بمن فيهم الطلاب)

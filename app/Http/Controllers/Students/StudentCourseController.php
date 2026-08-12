@@ -17,7 +17,9 @@ class StudentCourseController extends Controller
     public function index(CourseFilterRequest $request)
     {
 
-        $query = Course::query()->with(['categories' , 'attachments'])->available();
+        $query = Course::query()->with(['categories' , 'attachments'])
+         ->withAvg('reviews', 'rating')
+         ->withCount('reviews')->available();
 
 
         $query->search($request->search)
@@ -53,6 +55,32 @@ class StudentCourseController extends Controller
         ]);
     }
 
+        public function myCourses(Request $request)
+    {
+        $user = $request->user('sanctum');
+
+
+        $courses = $user->courses()
+            ->with(['teacher', 'categories'])
+             ->withAvg('reviews', 'rating')
+             ->withCount('reviews','students')
+
+            ->paginate(9);
+
+        return ApiResource::sendResponse("My courses retrieved successfully.", [
+            'courses' => CourseResource::collection($courses->items()),
+            'pagination' => [
+                'current_page' => $courses->currentPage(),
+                'last_page'    => $courses->lastPage(),
+                'total'        => $courses->total(),
+                'has_more'     => $courses->hasMorePages(),
+            ]
+        ]);
+    }
+
+
+
+
      public function show(Request $request,int $id){
          $course = Course::Where('is_published',true)->with([
     'teacher',
@@ -65,9 +93,13 @@ class StudentCourseController extends Controller
         },
     'sections.quiz',
     'sections.quiz.studentAttempts' => function ($q) { $q->where('student_id',Auth::id()); }
-    ])->available()->findOrFail($id);
+    ])
+     ->withAvg('reviews', 'rating')
+    ->withCount('reviews','students')
 
-    
+    ->available()->findOrFail($id);
+
+
      if ($course->status === 'hidden') {
             $user = $request->user('sanctum');
 
@@ -84,5 +116,40 @@ class StudentCourseController extends Controller
 
     return ApiResource::sendResponse("Course retrieved successfully.", new CourseResource($course));
      }
+
+
+         /**
+     * جلب أعلى 5 كورسات تقييماً (للواجهة الرئيسية)
+     */
+    public function topRated()
+    {
+
+        $courses = Course::available()
+            ->where('is_published', true)
+            ->withAvg('reviews', 'rating')
+            ->withCount('students')
+            ->orderByDesc('reviews_avg_rating')
+            ->take(5)
+            ->get();
+
+        return ApiResource::sendResponse("Top rated courses retrieved.", CourseResource::collection($courses));
+    }
+
+    /**
+     * جلب 5 كورسات مقترحة عشوائياً (للواجهة الرئيسية)
+     */
+    public function suggested()
+    {
+        $courses = Course::
+         withAvg('reviews', 'rating')
+            ->withCount('reviews','students')
+            ->available()
+            ->where('is_published', true)
+            ->inRandomOrder()
+            ->take(5)
+            ->get();
+
+        return ApiResource::sendResponse("Suggested courses retrieved.", CourseResource::collection($courses));
+    }
 
 }

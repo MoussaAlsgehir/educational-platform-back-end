@@ -13,6 +13,10 @@ class CourseResource extends JsonResource
         // 1. نفحص إذا الطالب الحالي مشترك بالكورس (إذا كان مسجل دخول)
                $isEnrolled = false;
         $user = $request->user('sanctum');
+
+        $originalPrice = (float) $this->price;
+        $finalPrice = $this->getFinalPrice();
+        $discountPercentage = $finalPrice < $originalPrice ? (float) $this->activeDiscount->percentage : 0;
         if ($user) {
             if ($user->isAdmin() || $this->teacher_id === $user->id) {
                 $isEnrolled = true;
@@ -20,7 +24,13 @@ class CourseResource extends JsonResource
                 $isEnrolled = $this->students()->where('student_id', $user->id)->exists();
 
             }
+
+
         }
+
+
+
+
         return [
             'id' => $this->id,
             'title' => $this->title,
@@ -36,6 +46,26 @@ class CourseResource extends JsonResource
             'certificate_attendance_threshold' => $this->certificate_attendance_threshold,
             'cover_image' => $this->cover_image ? asset(Storage::url($this->cover_image)) : null,
             'is_enrolled' => $isEnrolled,
+             'pricing' => [
+                'original_price' => $originalPrice,
+                'discount_percentage' => $discountPercentage, // 0 إذا ما في خصم
+                'final_price' => round($finalPrice, 2), // السعر بعد الخصم
+                'has_active_discount' => $discountPercentage > 0, // True/False لعرض شارة "تخفيض"
+            ],
+                        //  عدد الطلاب المسجلين (بيعتمد على withCount('students') بالكونترولر)
+            'enrolled_students_count' => $this->whenCounted('students', $this->students_count, 0),
+            'total_minutes' =>$this->getTotalMinutes(), 
+
+            'rating' => [
+                'average' => $this->reviews_avg_rating ? round($this->reviews_avg_rating, 1) : 0,
+                'count' => $this->reviews_count ?? 0,
+            ],
+
+
+            'interaction_indicators' => [
+                'chat_activity' => 'normal',   // slow, normal,fast
+                'response_speed' => 'slow',   //slow, normal, fast
+            ],
 
 
             'teacher' => new UserResource($this->whenLoaded('teacher')),

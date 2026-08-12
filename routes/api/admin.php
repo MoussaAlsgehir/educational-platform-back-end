@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admins\AdminCourseController;
+use App\Http\Controllers\Admins\AdminDiscountController;
 use App\Http\Controllers\Admins\AdminInstructorRequestController;
 use App\Http\Controllers\Admins\AdminWalletController;
 use App\Http\Controllers\Admins\CategoryController;
@@ -84,5 +85,8 @@ Route::middleware('role:super_admin,admin')->group(function () {
     Route::post('instructor-requests/{instructorRequest}/review', [AdminInstructorRequestController::class, 'review']);
 
     Route::get('instructor-requests', [AdminInstructorRequestController::class, 'index']);
+
+    Route::get('discounts', [AdminDiscountController::class, 'index']);
+    Route::post('discounts/{discount}/review', [AdminDiscountController::class, 'review']);
 
 });

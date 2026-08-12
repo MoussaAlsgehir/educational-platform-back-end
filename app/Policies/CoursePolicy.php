@@ -45,4 +45,18 @@ class CoursePolicy
     {
         return $user->hasRole('instructor') && $course->teacher_id === $user->id;
     }
+
+        /**
+     * هل يحق للمستخدم رؤية/تحميل محتوى الكورس؟
+     */
+    public function viewContent(User $user, Course $course)
+    {
+
+        if ($user->isAdmin() || $course->teacher_id === $user->id) {
+            return true;
+        }
+
+      
+        return $user->courses()->where('course_id', $course->id)->exists();
+    }
 }

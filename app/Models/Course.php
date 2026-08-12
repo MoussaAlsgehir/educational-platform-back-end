@@ -84,6 +84,61 @@ class Course extends Model
     }
 
 
+        public function activeDiscount()
+    {
+        return $this->hasOne(CourseDiscount::class)->where('status', 'approved')->latest();
+    }
+
+    // علاقة عامة لكل الخصومات (للإدارة)
+    public function discounts()
+    {
+        return $this->hasMany(CourseDiscount::class);
+    }
+
+        /**
+     * حساب السعر النهائي بعد التحقق من الخصم الفعال
+     */
+    public function getFinalPrice(): float
+    {
+        $originalPrice = (float) $this->price;
+
+
+        if (!$this->relationLoaded('activeDiscount')) {
+            $this->load('activeDiscount');
+        }
+
+        if ($this->activeDiscount && $this->activeDiscount->isActive()) {
+            $discountPercentage = (float) $this->activeDiscount->percentage;
+            return $originalPrice - ($originalPrice * ($discountPercentage / 100));
+        }
+
+        return $originalPrice;
+    }
+
+
+    public function getTotalMinutes(): float
+
+    {
+
+                if ($this->relationLoaded('sections') && $this->sections->isNotEmpty()) {
+                    $totalSeconds = 0;
+                    foreach ($this->sections as $section) {
+                        if ($section->relationLoaded('lessons')) {
+                            foreach ($section->lessons as $lesson) {
+                                if ($lesson->relationLoaded('contents')) {
+                                    foreach ($lesson->contents as $content) {
+                                        $totalSeconds += $content->duration ?? 0;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    return round($totalSeconds / 60, 1);
+                }
+                return 0;
+        
+    }
+
     //scopes
 
 

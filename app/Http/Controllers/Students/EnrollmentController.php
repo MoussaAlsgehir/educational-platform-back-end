@@ -20,38 +20,33 @@ class EnrollmentController extends Controller
         $this->walletService = $walletService;
     }
 
-    /**
-     * تسجيل الطالب في كورس مدفوع (أو مجاني)
-     */
-    public function enroll(Request $request,Course $course)
+       public function enroll(Course $course)
     {
+        $student = Auth::user();
 
-        $student = $request->user('sanctum');
-
-        // 1. التأكد إنو الكورس متاح للشراء (متاح ومنشور)
         if (!$course->is_published || in_array($course->status, ['draft', 'pending', 'rejected', 'hidden'])) {
             return ApiResource::sendResponse("This course is not available for enrollment.", null, 400);
         }
 
-        // 2. التأكد إنو الطالب ما مشترك فيه مسبقاً
         if ($student->courses()->where('course_id', $course->id)->exists()) {
             return ApiResource::sendResponse("You are already enrolled in this course.", null, 400);
         }
 
-        // 3. التأكد إنو الكورس مجاني
-        if ($course->price == 0) {
+        $priceToDeduct = $course->getFinalPrice();
+
+        if ($priceToDeduct == 0) {
             $student->courses()->attach($course->id, ['is_completed' => false]);
             return ApiResource::sendResponse("Enrolled successfully (Free Course)!");
         }
 
-        // 4. إذا الكورس مدفوع: تنفيذ عملية الشراء المالية
-        try {
-            DB::transaction(function () use ($student, $course) {
 
-                // أ. خصم المبلغ من محفظة الطالب
+        try {
+            DB::transaction(function () use ($student, $course, $priceToDeduct) {
+
+                // أ. خصم النقاط من الطالب
                 $this->walletService->deductPoints(
                     $student,
-                    $course->price,
+                    $priceToDeduct,
                     'course_purchase',
                     "Bought course: {$course->title}"
                 );
@@ -60,13 +55,13 @@ class EnrollmentController extends Controller
                 if ($course->teacher_id) {
                     $this->walletService->addPoints(
                         $course->teacher,
-                        $course->price,
+                        $priceToDeduct,
                         'course_earnings',
                         "Earnings from course: {$course->title}"
                     );
                 }
 
-                // ج. تفعيل الاشتراك بالكورس للطالب
+                // ج. تفعيل الاشتراك
                 $student->courses()->attach($course->id, [
                     'is_completed' => false,
 
@@ -76,8 +71,8 @@ class EnrollmentController extends Controller
             return ApiResource::sendResponse("Enrolled successfully! Payment processed.");
 
         } catch (Exception $e) {
-            // إذا الرصيد غير كافي، الـ WalletService رح يرمي Exception وهون بترجعه
             return ApiResource::sendResponse($e->getMessage(), null, 400);
         }
     }
+
 }

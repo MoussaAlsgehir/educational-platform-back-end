@@ -8,7 +8,11 @@ use Illuminate\Support\Facades\Route;
  Route::prefix('student')->group(function () {
     Route::get('/categories', [CategoryController::class, 'index']);
     Route::get('/courses', [StudentCourseController::class, 'index']);
+    // مسارات الواجهة الرئيسية (Homepage)
+    Route::get('/courses/top-rated', [StudentCourseController::class, 'topRated']);
+    Route::get('/courses/suggested', [StudentCourseController::class, 'suggested']);
     Route::get('/courses/{id}', [StudentCourseController::class, 'show']);
+
 });
 
 Route::get('/verify/{serial_number}', [CertificateController::class, 'verifyBySerial']);
