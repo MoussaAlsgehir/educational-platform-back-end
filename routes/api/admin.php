@@ -90,3 +90,6 @@ Route::middleware('role:super_admin,admin')->group(function () {
     Route::post('discounts/{discount}/review', [AdminDiscountController::class, 'review']);
 
 });
+
+
+// 1 | YgzD2WLsmx5yCiupneWkGybOSwg4jOo2chPUeO4h7d058064

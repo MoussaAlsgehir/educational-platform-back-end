@@ -32,7 +32,7 @@ class AuthController extends Controller
             $validatedData['date_of_birth'] = \Carbon\Carbon::parse($validatedData['date_of_birth'])->format('Y-m-d');
         }
 
-        if ($request->hasFile('avatar_url')) {
+        if (isset($validatedData['avatar_url'])) {
             $file = $request->file('avatar_url');
             $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
             $path = $file->storeAs('avatars', $fileName, 'public');
