@@ -64,4 +64,15 @@ class GeneralNotification extends Notification implements ShouldBroadcastNow
         return 'GeneralNotification';
     }
 
+        /**
+     * البيانات الأساسية للإشعار (تُستخدم للـ Database والـ Broadcast)
+     */
+    public function toArray($notifiable): array
+    {
+        return [
+            'title' => $this->title,
+            'body'  => $this->body,
+            'type'  => $this->type,
+        ];
+    }
 }

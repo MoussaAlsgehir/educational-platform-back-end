@@ -10,6 +10,7 @@ class NoteResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            'note_id' => $this->id,
             'student' => [
                 'id' => $this->student_id,
                 'full_name' => $this->whenLoaded('student', function () {

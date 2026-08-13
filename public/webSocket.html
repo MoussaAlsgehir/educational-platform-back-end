@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reverb Notification Test</title>
+    <script src="/pusher.min.js"></script>
+    <script src="/echo.global.js"></script>
+</head>
+<body>
+
+    <h2>Reverb Notification Test</h2>
+    <p id="status">Connecting...</p>
+    <div id="notifications" style="background:#eee; padding:20px; margin-top:20px; border-radius:8px;"></div>
+
+    <script>
+        // ضع التوكن الصحيح هنا (تأكد أنه فعال وغير منتهي)
+        const TOKEN = '4|Fq4N3pSrL6I4yVEHP7RCr4U12O3WGjUcxAoW7ZQI8258a569';
+        const userId = 1; // ضع الـ ID الصحيح للمستخدم
+
+        const echo = new Echo.default({
+            broadcaster: 'reverb',
+            key: 'mqsvcbuu6qrwmbxc8l31',
+            wsHost: '127.0.0.1',
+            wsPort: 8080,
+            forceTLS: false,
+            enabledTransports: ['ws'],
+            authEndpoint: 'http://127.0.0.1:8000/broadcasting/auth',
+            auth: {
+                headers: {
+                    Authorization: 'Bearer ' + TOKEN,
+                    Accept: 'application/json'
+                }
+            }
+        });
+
+        document.getElementById('status').innerText = 'Connecting to Reverb...';
+
+        const channelName = `App.Models.User.${userId}`;
+
+        echo.private(channelName)
+            .subscribed(function () {
+                console.log('✅ SUBSCRIBED:', channelName);
+                document.getElementById('status').innerText = '✅ Connected and Subscribed!';
+            })
+            .error(function (error) {
+                console.error('❌ CHANNEL AUTH ERROR:', error);
+                document.getElementById('status').innerText = '❌ Error: ' + JSON.stringify(error);
+            })
+            .notification(function (notification) {
+                console.log('🔔 NOTIFICATION RECEIVED:', notification);
+                const div = document.getElementById('notifications');
+                div.innerHTML += `
+                    <div style="background:white; padding:15px; margin-bottom:10px; border-left:5px solid blue;">
+                        <strong>${notification.title}</strong><br>
+                        <p>${notification.body}</p>
+                        <small>Type: ${notification.type}</small>
+                    </div>
+                `;
+            });
+    </script>
+</body>
+</html>

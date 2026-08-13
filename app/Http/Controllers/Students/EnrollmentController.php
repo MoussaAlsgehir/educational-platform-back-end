@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Students;
 
 use App\Http\Controllers\Controller;
 use App\Helpers\ApiResource;
+use App\Http\Resources\NotificationResource;
 use App\Models\Course;
 use App\Services\WalletService;
 use Illuminate\Support\Facades\DB;
@@ -67,7 +68,12 @@ class EnrollmentController extends Controller
 
                 ]);
             });
-
+            $student->notify(new NotificationResource([
+                'title' => 'Course Enrolled',
+                'body' => "You have successfully enrolled in the course: {$course->title}",
+                'type' => 'enrollment',
+                    
+            ]));
             return ApiResource::sendResponse("Enrolled successfully! Payment processed.");
 
         } catch (Exception $e) {
