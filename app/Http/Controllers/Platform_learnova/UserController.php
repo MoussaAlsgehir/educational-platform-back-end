@@ -83,6 +83,9 @@ class UserController extends Controller
             'total_pages' => $users->lastPage(),
         ], 200);
     }
+
+
+  
     public function destroy(Request $request)
     {
         $request->validate([
