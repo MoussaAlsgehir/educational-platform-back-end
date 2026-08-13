@@ -7,15 +7,20 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class NoteResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
         return [
-            'student_id' => $this->student_id,
+            'student' => [
+                'id' => $this->student_id,
+                'full_name' => $this->whenLoaded('student', function () {
+                    return $this->student->first_name . ' ' . $this->student->last_name;
+                }),
+                'avatar_url' => $this->whenLoaded('student', function () {
+                    return $this->student->avatar_url
+                        ? asset('storage/' . $this->student->avatar_url)
+                        : asset('storage/avatars/default-avatar.jpg');
+                }),
+            ],
             'lesson_id' => $this->lesson_id,
             'lesson_title' => $this->lesson->title,
             'note_text' => $this->note_text,
