@@ -7,6 +7,7 @@ use App\Http\Controllers\Instructors\LessonContentController;
 use App\Http\Controllers\Instructors\ChunkUploadController;
 use App\Http\Controllers\Instructors\CourseAttachmentController;
 use App\Http\Controllers\Instructors\DiscountController;
+use App\Http\Controllers\Instructors\InstructorAnalyticsController;
 use App\Http\Controllers\Instructors\WithdrawalController;
 use App\Http\Controllers\Platform_learnova\QuizzController;
 use App\Http\Controllers\Platform_learnova\QuestionController;
@@ -61,6 +62,11 @@ Route::middleware('role:instructor,super_admin,admin')->prefix('instructor')->gr
     Route::get('discounts', [DiscountController::class, 'index']);
     Route::post('courses/{course}/discounts', [DiscountController::class, 'store']);
     Route::delete('discounts/{discount}', [DiscountController::class, 'destroy']);
+
+
+    // إحصائيات لوحة تحكم المدرس
+    Route::get('/analytics/summary', [InstructorAnalyticsController::class, 'summary']);
+    Route::get('/analytics/enrollments', [InstructorAnalyticsController::class, 'enrollments']);
 });
 
 // مسارات الـ Quizzs الخاصة بالمدربين والإدارة والتعديل عليها
