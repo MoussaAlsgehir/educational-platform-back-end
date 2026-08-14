@@ -91,13 +91,14 @@ class InstructorCourseController extends Controller
     {
         Gate::authorize('update', $course);
 
+        if ($course->is_published) {
+            return ApiResource::sendResponse("Course is already published.", null, 400);
+        }
+        
         if ($course->status !== 'approved') {
             return ApiResource::sendResponse("Course must be approved by admin before publishing.", null, 403);
         }
 
-        if ($course->is_published) {
-            return ApiResource::sendResponse("Course is already published.", null, 400);
-        }
 
 
         if ($course->publish_type === 'live') {
@@ -176,7 +177,7 @@ class InstructorCourseController extends Controller
             $previewCount = $previewLessons->count();
 
             if ($previewCount < 1 || $previewCount > 3) {
-                return ApiResource::sendResponse("Live courses must have between 1 and 3 preview videos.", null, 422);
+                return ApiResource::sendResponse("Live courses must have between 1 and 3 preview lessons.", null, 422);
             }
         }
         // on demand

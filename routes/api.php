@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Chat\ConversationController;
+use App\Http\Controllers\Chat\MessageController;
 use App\Http\Controllers\Students\DownloadController;
 use App\Http\Controllers\Platform_learnova\AuthController;
 use App\Http\Controllers\Platform_learnova\NotificationController;
@@ -33,6 +35,22 @@ Route::middleware('auth:sanctum')->group(function () {
    // عرض كل الenpoint المتاحة لجميع الأدوار
 
 
+   // مسارات الطالب والمدرس
+Route::get('/conversations', [ConversationController::class, 'index']);
+// جلب شات كورس محدد
+Route::get('/courses/{courseId}/chat', [ConversationController::class, 'getCourseChat']);
+Route::post('/conversations/support', [ConversationController::class, 'storeSupport']);
+Route::post('/conversations/complaints', [ConversationController::class, 'storeComplaint']);
+Route::post('/conversations/ai-chat', [ConversationController::class, 'startAiChat']);
+Route::get('/conversations/{id}/messages', [ConversationController::class, 'messages']);
+Route::get('/conversations/{id}/pinned', [ConversationController::class, 'pinnedMessages']);
+
+// مسارات الرسائل
+Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store']);
+Route::put('/messages/{message}', [MessageController::class, 'update']);
+Route::post('/messages/{message}/teacher-reply', [MessageController::class, 'teacherReply']);
+Route::post('/messages/{message}/pin', [MessageController::class, 'pin']);
+Route::post('/messages/{message}/like', [MessageController::class, 'toggleLike']);
 
 
     /* --- 3. استدعاء بقية الملفات المفصولة داخل الميدلواير المحمي --- */

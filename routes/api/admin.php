@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admins\AdminConversationController;
 use App\Http\Controllers\Admins\AdminCourseController;
 use App\Http\Controllers\Admins\AdminDiscountController;
 use App\Http\Controllers\Admins\AdminInstructorRequestController;
@@ -88,6 +89,14 @@ Route::middleware('role:super_admin,admin')->group(function () {
 
     Route::get('discounts', [AdminDiscountController::class, 'index']);
     Route::post('discounts/{discount}/review', [AdminDiscountController::class, 'review']);
+
+
+    Route::middleware('role:admin,super_admin')->prefix('admin')->group(function () {
+    Route::get('/conversations', [AdminConversationController::class, 'index']);
+    Route::post('/conversations/{conversation}/activate', [AdminConversationController::class, 'activate']);
+    Route::post('/conversations/{conversation}/release', [AdminConversationController::class, 'release']);
+    Route::post('/conversations/{conversation}/close', [AdminConversationController::class, 'close']);
+});
 
 });
 

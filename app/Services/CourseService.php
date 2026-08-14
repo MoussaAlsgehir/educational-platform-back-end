@@ -34,8 +34,13 @@ class CourseService
         if (isset($data['category_ids'])) {
             $course->categories()->sync($data['category_ids']);
         }
+                // إنشاء غرفة الشات والإعلانات تلقائياً للكورس
+        \App\Models\Conversation::create(['course_id' => $course->id, 'type' => 'course_group', 'status' => 'open']);
+        \App\Models\Conversation::create(['course_id' => $course->id, 'type' => 'announcement', 'status' => 'open']);
 
         return $course;
+
+        
     }
 
 
