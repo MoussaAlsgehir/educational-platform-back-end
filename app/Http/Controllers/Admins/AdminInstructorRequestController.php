@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Helpers\ApiResource;
 use App\Models\InstructorRequest;
 use App\Models\Role;
+use App\Notifications\GeneralNotification;
 use Illuminate\Http\Request;
 
 class AdminInstructorRequestController extends Controller
@@ -41,6 +42,19 @@ class AdminInstructorRequestController extends Controller
                 // syncWithoutDetaching عشان ما نحذف دور الطالب، بس نضيف دور المدرس
                 $instructorRequest->user->roles()->syncWithoutDetaching([$instructorRole->id]);
             }
+        }
+                if ($request->status === 'approved') {
+            $instructorRequest->user->notify(new GeneralNotification(
+                "Congratulations! You are now an Approved Instructor",
+                "Your request to become an instructor on LearNova has been approved.",
+                "instructor_approved"
+            ));
+        } else {
+            $instructorRequest->user->notify(new GeneralNotification(
+                "Instructor Request Rejected",
+                "We are sorry to inform you that your instructor request was rejected. Reason: {$request->rejection_reason}",
+                "instructor_rejected"
+            ));
         }
 
         return ApiResource::sendResponse("Request {$request->status} successfully.", $instructorRequest);

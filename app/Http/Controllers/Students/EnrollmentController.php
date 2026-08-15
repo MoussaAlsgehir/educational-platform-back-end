@@ -69,11 +69,18 @@ class EnrollmentController extends Controller
 
                 ]);
             });
-             $student->notify(new GeneralNotification(
-                'Course Enrolled',
-                "You have successfully enrolled in the course: {$course->title}",
-                'enrollment'
+              $student->notify(new GeneralNotification(
+                "Successfully Enrolled!",
+                "You are now enrolled in course: {$course->title}. Good luck with your learning journey!",
+                "enrollment_success"
             ));
+                if ($course->teacher) {
+                $course->teacher->notify(new GeneralNotification(
+                    "New Student Enrolled!",
+                    "Student {$student->first_name} {$student->last_name} just enrolled in your course: {$course->title}",
+                    "new_enrollment"
+                ));
+            }
             return ApiResource::sendResponse("Enrolled successfully! Payment processed.");
 
         } catch (Exception $e) {

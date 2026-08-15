@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Helpers\ApiResource;
 use App\Http\Resources\CourseResource;
 use App\Models\Course;
+use App\Notifications\GeneralNotification;
 use App\Services\CourseStatusService;
 use Illuminate\Http\Request;
 
@@ -26,6 +27,11 @@ class AdminCourseController extends Controller
             'rejection_reason' => null
         ]);
         CourseStatusService::refresh($course);
+          $course->teacher->notify(new GeneralNotification(
+            "Course Approved!",
+            "Your course {$course->title} has been approved. You can now publish it to students.",
+            "course_approved"
+        ));
         return ApiResource::sendResponse("Course approved successfully.", new CourseResource($course));
     }
 
@@ -40,6 +46,11 @@ class AdminCourseController extends Controller
             'status' => 'rejected',
             'rejection_reason' => $request->rejection_reason
         ]);
+            $course->teacher->notify(new GeneralNotification(
+            "Course Rejected",
+            "Your course {$course->title} was rejected. Reason: {$request->rejection_reason}",
+            "course_rejected"
+        ));
         return ApiResource::sendResponse("Course rejected successfully.", ['Rejection Reason' => $course->rejection_reason]);
     }
 

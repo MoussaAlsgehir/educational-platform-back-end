@@ -45,6 +45,11 @@ class DatabaseSeeder extends Seeder
 
             // 10. شهادات PDF فعلية للطلاب الذين أتموا الكورس
             CertificateSeeder::class,
+
+            ChatSeeder::class,
+
+            
+
         ]);
     }
 }

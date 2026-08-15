@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admins;
 use App\Http\Controllers\Controller;
 use App\Helpers\ApiResource;
 use App\Models\CourseDiscount;
+use App\Notifications\GeneralNotification;
 use Illuminate\Http\Request;
 
 class AdminDiscountController extends Controller
@@ -45,7 +46,19 @@ class AdminDiscountController extends Controller
         $discount->status = $request->status;
         $discount->rejection_reason = $request->rejection_reason;
         $discount->save();
-
+               if ($request->status === 'approved') {
+            $discount->course->teacher->notify(new GeneralNotification(
+                "Discount Approved",
+                "Your discount request for course {$discount->course->title} has been approved.",
+                "discount_approved"
+            ));
+        } else {
+            $discount->course->teacher->notify(new GeneralNotification(
+                "Discount Request Rejected",
+                "Your discount request for course {$discount->course->title} was rejected. Reason: {$request->rejection_reason}",
+                "discount_rejected"
+            ));
+        }
         return ApiResource::sendResponse("Discount request {$request->status} successfully.", $discount);
     }
 }

@@ -8,6 +8,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Wallet;
 use App\Models\WithdrawalRequest;
+use App\Notifications\GeneralNotification;
 use App\Services\WalletService;
 use Exception;
 use Illuminate\Http\Request;
@@ -32,6 +33,11 @@ class AdminWalletController extends Controller
                 'manual_top_up',
                 $request->description ?? "Manual top-up by Admin"
             );
+                $student->notify(new GeneralNotification(
+                "Wallet Credited",
+                "Your wallet has been credited with {$request->amount} points successfully by the platform administration.",
+                "wallet_topup"
+            ));
 
             return ApiResource::sendResponse("Wallet topped up successfully.", [
                 'student_name' => $student->name,
@@ -66,6 +72,11 @@ class AdminWalletController extends Controller
 
                 $withdrawal->update(['status' => 'approved']);
             });
+                 $withdrawal->instructor->notify(new GeneralNotification(
+                "Withdrawal Approved",
+                "Your withdrawal request for {$withdrawal->amount} points has been approved and deducted from your balance.",
+                "withdrawal_approved"
+            ));
 
             return ApiResource::sendResponse("Withdrawal approved and balance deducted.", $withdrawal);
 
