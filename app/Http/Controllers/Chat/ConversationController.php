@@ -46,11 +46,12 @@ class ConversationController extends Controller
         $conversation = Conversation::where('course_id', $courseId)
             ->where('type', 'course_group')
             ->firstOrFail();
+        $messages = $conversation->messages()->with('user:id,first_name,last_name,avatar_url')->withCount('likes')->latest('id')->cursorPaginate(20);
 
 
         Gate::authorize('view', $conversation);
 
-        return ApiResource::sendResponse("Course chat retrieved.", new ConversationResource($conversation));
+        return ApiResource::sendResponse("Course chat retrieved.",  MessageResource::collection($messages), 200, $messages->nextPageUrl());
     }
 
     // إنشاء محادثة دعم (Support)
@@ -86,7 +87,7 @@ class ConversationController extends Controller
         return ApiResource::sendResponse("AI Chat is ready.", new ConversationResource($conversation), 201);
     }
 
-    
+
     public function messages(Request $request, $id)
     {
         $conversation = Conversation::findOrFail($id);

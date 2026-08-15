@@ -29,7 +29,12 @@ class MessageController extends Controller
 
         $message = $this->msgService->sendMessage($conversation, $request->user(), $request->body);
 
-        // (هون لاحقاً منبعت الـ Event للـ Reverb)
+
+        $message->load('user:id,first_name,last_name,avatar_url');
+
+
+        broadcast(new \App\Events\MessageSent($message))->toOthers();
+
 
         return ApiResource::sendResponse("Message sent.", new MessageResource($message), 201);
     }

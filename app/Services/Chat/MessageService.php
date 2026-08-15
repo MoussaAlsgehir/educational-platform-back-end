@@ -9,12 +9,13 @@ use Illuminate\Support\Facades\DB;
 class MessageService
 {
     // إرسال رسالة
-    public function sendMessage($conversation, User $user, string $body): Message
+    public function sendMessage($conversation, User $user, string $body ,bool $isAi=false): Message
     {
         return Message::create([
             'conversation_id' => $conversation->id,
             'user_id' => $user->id,
             'body' => $body,
+            'is_ai_response' => $isAi,
         ]);
     }
 

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LearNova Chat Test</title>
+    <script src="/pusher.min.js"></script>
+    <script src="/echo.global.js"></script>
+</head>
+<body>
+    <h2>Chat Room: <span id="convId">1</span></h2>
+    <input type="text" id="messageInput" placeholder="Type a message...">
+    <button onclick="sendMessage()">Send</button>
+    <div id="messages" style="margin-top:20px; border:1px solid #ccc; padding:10px; height:300px; overflow-y:scroll;"></div>
+
+    <script>
+        const TOKEN = '4|b7qRnkoJboLNlP1bJBYc00iqKVjiR2wocbfq36l79cccd94a'; // توكن المستخدم
+        const CONVERSATION_ID = 3; // رقم المحادثة
+
+const echo = new (Echo.default || Echo)({            broadcaster: 'reverb',
+            key: 'mqsvcbuu6qrwmbxc8l31',
+            wsHost: '127.0.0.1',
+            wsPort: 8080,
+            forceTLS: false,
+            enabledTransports: ['ws'],
+            authEndpoint: 'http://127.0.0.1:8000/broadcasting/auth',
+            auth: { headers: { Authorization: 'Bearer ' + TOKEN, Accept: 'application/json' } }
+        });
+
+        echo.private(`conversation.${CONVERSATION_ID}`)
+            .listen('MessageSent', (e) => {
+                const div = document.getElementById('messages');
+                div.innerHTML += `<p><b>${e.sender.name}:</b> ${e.body}</p>`;
+                div.scrollTop = div.scrollHeight;
+            });
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const body = input.value;
+            if (!body) return;
+
+            fetch(`http://127.0.0.1:8000/api/conversations/${CONVERSATION_ID}/messages`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + TOKEN
+                },
+                body: JSON.stringify({ body: body })
+            }).then(res => res.json()).then(data => {
+                console.log("Sent:", data);
+                input.value = '';
+            });
+        }
+    </script>
+</body>
+</html>
