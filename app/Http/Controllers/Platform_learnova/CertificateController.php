@@ -126,4 +126,53 @@ class CertificateController extends Controller
             'pdf_url'       => $this->pdfService->getCertificateDownloadUrl($certificate->certificate_url),
         ], 200);
     }
+
+
+
+
+    /**
+     * Stream the certificate PDF as a PNG image for frontend preview.
+     *
+     * @param int $certificateId
+     * @return \Illuminate\Http\Response|\Illuminate\Http\JsonResponse
+     */
+    // public function previewAsImage($certificateId)
+    // {
+    //     $certificate = Certificate::find($certificateId);
+
+    //     if (!$certificate) {
+    //         return ApiResource::sendResponse('Certificate not found.', null, 404);
+    //     }
+
+    //     // التحقق من الصلاحيات (نفس المنطق المستخدم في دالة التحميل)
+    //     if (Auth::id() !== $certificate->student_id) {
+    //         return ApiResource::sendResponse('Unauthorized access to this certificate.', null, 403);
+    //     }
+
+    //     // استخراج المسار الفعلي لملف الـ PDF على السيرفر
+    //     // ملاحظة: تأكد من تعديل هذا السطر ليتوافق مع طريقة حفظك للملف (مثلاً إذا كان داخل storage/app/public)
+    //     $pdfPath = storage_path('app/public/' . $certificate->certificate_url);
+
+    //     if (!file_exists($pdfPath)) {
+    //         return ApiResource::sendResponse('Certificate file not found on server.', null, 404);
+    //     }
+
+    //     try {
+    //         // استخدام مكتبة Spatie لتحويل الـ PDF إلى صورة في الذاكرة بدون حفظ على القرص
+    //         $pdf = new \Spatie\PdfToImage\Pdf($pdfPath);
+
+    //         // اختر الصفحة الأولى وحصل على بيانات الصورة كـ binary PNG
+    //         $imageData = $pdf->setOutputFormat('png')->selectPage(1)->getImageData();
+
+    //         // إرجاع الصورة مباشرة للفرونت إند مع تفعيل الكاش لتسريع الفتح في المرات القادمة
+    //         return response($imageData, 200, [
+    //             'Content-Type' => 'image/png',
+    //             'Cache-Control' => 'max-age=2592000, public', // كاش لمدة شهر
+    //         ]);
+    //     } catch (\Spatie\PdfToImage\Exceptions\PdfException $e) {
+    //         return ApiResource::sendResponse('PDF conversion error: ' . $e->getMessage(), null, 500);
+    //     } catch (\Exception $e) {
+    //         return ApiResource::sendResponse('Error generating image preview: ' . $e->getMessage(), null, 500);
+    //     }
+    // }
 }
