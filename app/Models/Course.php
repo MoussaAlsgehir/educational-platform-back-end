@@ -136,7 +136,7 @@ class Course extends Model
                     return round($totalSeconds / 60, 1);
                 }
                 return 0;
-        
+
     }
 
     //scopes

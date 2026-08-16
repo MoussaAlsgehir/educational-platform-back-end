@@ -16,6 +16,7 @@ class UpdateQuizzRequest extends FormRequest
         return [
             'title' => 'sometimes|required|string|max:255',
             'passing_score' => 'sometimes|required|integer|min:0|max:100',
+            'questions_count' => 'nullable|integer|min:1',
         ];
     }
 

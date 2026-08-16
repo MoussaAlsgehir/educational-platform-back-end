@@ -23,9 +23,13 @@ class InstructorCourseController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $courses = Course::where('teacher_id', Auth::id())->get();
+        if($request->status){
+            $courses = $courses->where('status', $request->status);
+        }
+
         return ApiResource::sendResponse("Courses retrieved successfully.", CourseResource::collection($courses));
 
     }
@@ -94,7 +98,7 @@ class InstructorCourseController extends Controller
         if ($course->is_published) {
             return ApiResource::sendResponse("Course is already published.", null, 400);
         }
-        
+
         if ($course->status !== 'approved') {
             return ApiResource::sendResponse("Course must be approved by admin before publishing.", null, 403);
         }
