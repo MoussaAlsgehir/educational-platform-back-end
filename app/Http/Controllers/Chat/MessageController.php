@@ -55,14 +55,20 @@ class MessageController extends Controller
         }
 
         //  2. إذا المحادثة AI
+
         if ($conversation->type === 'ai_chat') {
-            $aiService = new AiService();
+
+            // نولد الرد
+            $aiService = new \App\Services\AiService();
             $aiResponseText = $aiService->generateResponse($conversation, $request->body, $request->user());
 
+            // نحفظ رد الـ AI
             $aiMessage = $this->msgService->sendMessage($conversation, $request->user(), $aiResponseText, true);
             $aiMessage->load('user:id,first_name,last_name,avatar_url');
-            broadcast(new MessageSent($aiMessage))->toOthers();
 
+            broadcast(new \App\Events\MessageSent($aiMessage));
+
+            
             return ApiResource::sendResponse("Message sent.", new \App\Http\Resources\MessageResource($message), 201);
         }
 
