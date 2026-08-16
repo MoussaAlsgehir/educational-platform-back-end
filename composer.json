@@ -14,7 +14,8 @@
         "laravel/tinker": "^2.10.1",
         "league/flysystem-aws-s3-v3": "3.0",
         "php-ffmpeg/php-ffmpeg": "^1.4",
-        "simplesoftwareio/simple-qrcode": "^4.2"
+        "simplesoftwareio/simple-qrcode": "^4.2",
+        "spatie/pdf-to-image": "*"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^3.7",
