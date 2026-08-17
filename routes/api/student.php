@@ -71,9 +71,9 @@ Route::middleware('role:student,super_admin')->prefix('student/attempts')->contr
 
 // استعراض الأسئلة بشكل منفصل (متاح للطلاب والآدمن فقط كما هو محدد مسبقاً بكودك)
 Route::prefix('questions')->controller(QuestionController::class)->group(function () {
-    Route::get('/', 'index')->middleware('role:student,admin');
-    Route::get('{id}', 'show')->middleware('role:student,admin');
-});
+    Route::get('/', 'index');
+    Route::get('{id}', 'show');
+})->middleware('auth:sanctum');
 
 
 

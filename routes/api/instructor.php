@@ -67,6 +67,10 @@ Route::middleware('role:instructor,super_admin,admin')->prefix('instructor')->gr
     // إحصائيات لوحة تحكم المدرس
     Route::get('/analytics/summary', [InstructorAnalyticsController::class, 'summary']);
     Route::get('/analytics/enrollments', [InstructorAnalyticsController::class, 'enrollments']);
+
+    Route::get('courses/{course}/students', [InstructorCourseController::class, 'getEnrolledStudents']);
+
+    Route::post('sections/{sectionId}/quizzes/{quizId}/generate-ai', [QuestionController::class, 'generateAiQuestions']);
 });
 
 // مسارات الـ Quizzs الخاصة بالمدربين والإدارة والتعديل عليها
