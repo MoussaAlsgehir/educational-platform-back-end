@@ -16,7 +16,7 @@ class StoreQuizzRequest extends FormRequest
         return [
             'title' => 'required|string|max:255',
             'passing_score' => 'required|integer|min:0|max:100',
-            'questions_count' => 'nullable|integer|min:1',
+            'questions_count' => 'sometimes|nullable|integer|min:1',
         ];
     }
 

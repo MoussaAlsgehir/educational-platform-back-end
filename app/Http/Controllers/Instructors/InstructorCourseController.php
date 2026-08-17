@@ -202,4 +202,22 @@ class InstructorCourseController extends Controller
 
         return ApiResource::sendResponse("Course submitted for review successfully.", new CourseResource($course->load('sections')));
     }
+
+
+        /**
+     * جلب الطلاب المسجلين في كورس محدد (للمدرس)
+     */
+       public function getEnrolledStudents(Course $course)
+    {
+        // التأكد من أن المدرس يملك هذا الكورس
+        Gate::authorize('update', $course);
+
+        // جلب الطلاب مع بيانات التقدم من جدول الـ Pivot
+        $students = $course->students()
+            ->select('users.id', 'users.first_name', 'users.last_name', 'users.email', 'users.avatar_url')
+            ->withPivot(['attendance_percentage', 'is_completed', 'created_at'])
+            ->get();
+
+        return ApiResource::sendResponse("Enrolled students retrieved successfully.", $students);
+    }
 }

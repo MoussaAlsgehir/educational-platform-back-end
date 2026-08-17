@@ -48,7 +48,9 @@ class DatabaseSeeder extends Seeder
 
             ChatSeeder::class,
 
-            InstructorSeeder::class
+            InstructorSeeder::class,
+            AdminSeeder::class
+
         ]);
     }
 }

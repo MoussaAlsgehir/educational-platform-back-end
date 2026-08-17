@@ -46,6 +46,12 @@ class QuizzController extends Controller
             return ApiResource::sendResponse("You do not have permission to add a quiz to this course.", null, 403);
         }
 
+          //  منع وجود أكثر من كويز لنفس القسم
+        $existingQuiz = Quizz::where('section_id', $sectionId)->exists();
+        if ($existingQuiz) {
+            return ApiResource::sendResponse("This section already has a quiz. You can edit it instead.", null, 422);
+        }
+
         // دمج الـ section_id تلقائياً من الرابط
         $data = array_merge($request->validated(), [
             'section_id' => $sectionId

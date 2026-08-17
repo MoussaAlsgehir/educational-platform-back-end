@@ -10,12 +10,15 @@ use App\Helpers\ApiResource;
 use App\Http\Requests\QuestionRequest\IndexQuestionRequest;
 use App\Http\Requests\QuestionRequest\StoreQuestionRequest;
 use App\Http\Requests\QuestionRequest\UpdateQuestionRequest;
+use App\Models\Answer;
+use App\Models\Section;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class QuestionController extends Controller
 {
-    public function index(IndexQuestionRequest $request)
+       public function index(IndexQuestionRequest $request)
     {
         $user = Auth::user();
         $courseId = $request->validated('course_id');
@@ -35,10 +38,34 @@ class QuestionController extends Controller
             return ApiResource::sendResponse('Access denied. You are not enrolled or owning this course.', null, 403);
         }
 
-        // 2. جلب الأسئلة
-        $questions = Question::with('answers')
-            ->where('quizz_id', $quizzId)
-            ->get();
+
+        $quiz = Quizz::find($quizzId);
+
+
+        $query = Question::with('answers')->where('quizz_id', $quizzId);
+
+        // 2.  منطق بنك الأسئلة
+        if (!$isTeacher && $quiz) {
+            $dbCount = $query->count(); // عدد الأسئلة الكلي بالبنك
+
+            // تحديد العدد المطلوب (إذا فارغ، نعتمد 5 كـ Default)
+            $targetCount = $quiz->questions_count ? $quiz->questions_count : 5;
+
+            // العدد النهائي هو الأقل بين (المطلوب) و (الموجود بالبنك)
+            $finalCount = min($targetCount, $dbCount);
+
+         $questions = $query->inRandomOrder()
+                ->take($finalCount)
+                ->get()
+                ->map(function ($question) {
+                    $shuffledAnswers = $question->answers->shuffle();
+                    $question->setRelation('answers', $shuffledAnswers);
+                    return $question;
+                });
+        } else {
+            // المدرس: نرجع كل الأسئلة بترتيبها العادي ليراجعها
+            $questions = $query->get();
+        }
 
         return ApiResource::sendResponse('Questions retrieved successfully.', $questions, 200);
     }
@@ -166,5 +193,69 @@ class QuestionController extends Controller
         $question->delete();
 
         return ApiResource::sendResponse('Question and its answers deleted successfully.', null, 200);
+    }
+
+        /**
+     * توليد أسئلة بالذكاء الاصطناعي وحفظها
+     */
+    public function generateAiQuestions(Request $request, $sectionId, $quizId)
+    {
+        $request->validate([
+            'num_questions' => 'required|integer|min:1|max:20',
+            'default_points' => 'nullable|integer|min:1',
+            'notes' => 'nullable|string|max:500',
+            'multiple_ratio' => 'nullable|integer|in:0,1,2,3',
+            'true_false_ratio' => 'nullable|integer|in:0,1,2,3',
+            'language' => 'nullable|in:en,ar',
+            'difficulty' => 'nullable|integer|in:0,1,2,3'
+        ]);
+
+        $section = Section::with(['lessons.contents', 'course'])->findOrFail($sectionId);
+        $quiz = Quizz::findOrFail($quizId);
+
+        if (Auth::user()->hasRole('instructor') && $section->course->teacher_id !== auth()->id()) {
+            return ApiResource::sendResponse("Access denied. You do not own this course.", null, 403);
+        }
+
+        $config = [
+            'num_questions' => $request->num_questions,
+            'default_points' => $request->default_points ?? 2,
+            'notes' => $request->notes,
+            'multiple_ratio' => $request->multiple_ratio ?? 0,
+            'true_false_ratio' => $request->true_false_ratio ?? 0,
+            'language' => $request->language ?? 'ar',
+            'difficulty' => $request->difficulty ?? 0
+        ];
+
+        try {
+            $aiService = new \App\Services\AiService();
+            $generatedQuestions = $aiService->generateQuizQuestions($section, $config);
+
+            $savedQuestions = [];
+            DB::transaction(function () use ($generatedQuestions, $quiz, $config, &$savedQuestions) {
+                foreach ($generatedQuestions as $qData) {
+                    $question = Question::create([
+                        'quizz_id' => $quiz->id,
+                        'question_text' => $qData['question'],
+                        'question_points' => $config['default_points']
+                    ]);
+
+                    foreach ($qData['options'] as $option) {
+                        Answer::create([
+                            'question_id' => $question->id,
+                            'answer_text' => $option,
+                            'is_correct' => ($option === $qData['correct_answer'])
+                        ]);
+                    }
+                    $savedQuestions[] = $question->load('answers');
+                }
+            });
+
+            return ApiResource::sendResponse("AI questions generated successfully.", $savedQuestions, 201);
+
+        } catch (\Exception $e) {
+            \Log::error('AI Quiz Error: ' . $e->getMessage());
+            return ApiResource::sendResponse("Failed to generate questions: " . $e->getMessage(), null, 500);
+        }
     }
 }

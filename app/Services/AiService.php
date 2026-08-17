@@ -7,6 +7,7 @@ use App\Models\Conversation;
 use App\Models\Course;
 use App\Models\User;
 use App\Models\Category;
+use App\Models\Section;
 
 class AiService
 {
@@ -155,4 +156,67 @@ class AiService
 
         return "حدث خطأ في الاتصال. حاول مرة أخرى لاحقاً.";
     }
+
+        /**
+     * توليد أسئلة كويز ذكية بناءً على معطيات القسم
+     */
+   
+    public function generateQuizQuestions(Section $section, array $config): array
+    {
+        $lessonTitles = $section->lessons->pluck('title')->implode(', ');
+        $textContents = $section->lessons->flatMap->contents->where('type', 'text_article')->pluck('text_value')->implode(' ');
+
+        $multipleText = $config['multiple_ratio'] == 0 ? 'None' : ['Low', 'Medium', 'High'][$config['multiple_ratio']-1] ?? 'None';
+        $tfText = $config['true_false_ratio'] == 0 ? 'None' : ['Low', 'Medium', 'High'][$config['true_false_ratio']-1] ?? 'None';
+        $diffText = $config['difficulty'] == 0 ? 'A mix of difficulties' : ['Easy', 'Medium', 'Advanced'][$config['difficulty']-1] ?? 'A mix';
+
+        $prompt = "You are an expert quiz creator. Based on the following context:\n";
+        $prompt .= "Lesson Titles: {$lessonTitles}\n";
+        if (!empty($textContents)) $prompt .= "Text Content Summary: " . substr($textContents, 0, 1000) . "\n";
+        if (!empty($config['notes'])) $prompt .= "Instructor Notes: {$config['notes']}\n";
+
+        $prompt .= "Generate {$config['num_questions']} questions in {$config['language']} language.\n";
+        $prompt .= "Difficulty: {$diffText}.\n";
+        $prompt .= "Include multiple-choice questions with combined answers (e.g., 'A and B') with a '{$multipleText}' ratio.\n";
+        $prompt .= "Include True/False questions with a '{$tfText}' ratio.\n";
+        $prompt .= "Respond STRICTLY with a JSON array in this exact format:\n";
+        $prompt .= '[{"question": "...", "options": ["...", "...", "...", "..."], "correct_answer": "..."}]';
+
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$this->model}:generateContent?key={$this->apiKey}";
+
+        // ✨ تصحيح ترتيب الأقواس للمصفوفة
+        $response = Http::withHeaders(['Content-Type' => 'application/json'])
+            ->post($url, [
+                'contents' => [
+                    [
+                        'parts' => [
+                            ['text' => $prompt]
+                        ]
+                    ]
+                ],
+                'generationConfig' => [
+                    'temperature' => 0.4,
+                    'maxOutputTokens' => 2048,
+                    'responseMimeType' => 'application/json'
+                ]
+            ]);
+
+        if ($response->successful()) {
+            $jsonString = $response->json('candidates.0.content.parts.0.text');
+            $data = json_decode($jsonString, true);
+            if (is_array($data)) {
+                return $data;
+            }
+            \Log::error('Gemini JSON Parse Error', ['body' => $jsonString]);
+            throw new \Exception("Failed to parse AI response.");
+        }
+
+        \Log::error('Gemini Quiz Generation Error', [
+            'status' => $response->status(),
+            'response' => $response->body()
+        ]);
+
+        throw new \Exception("Failed to generate quiz questions from AI.");
+    }
+
 }

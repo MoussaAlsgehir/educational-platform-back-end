@@ -24,44 +24,40 @@ class MessageController extends Controller
     }
 
     // إرسال رسالة
-         public function store(Request $request, Conversation $conversation)
+          public function store(Request $request, Conversation $conversation)
     {
         Gate::authorize('sendMessage', $conversation);
         $request->validate(['body' => 'required|string|max:2000']);
 
+        // 1. حفظ رسالة الطالب
         $message = $this->msgService->sendMessage($conversation, $request->user(), $request->body, false);
         $message->load('user:id,first_name,last_name,avatar_url');
+
+        // بث رسالة الطالب
         broadcast(new \App\Events\MessageSent($message))->toOthers();
 
-        //  1. إشعارات الشات (باستثناء الـ AI والـ Group Chat العادي)
-        if ($conversation->type === 'announcement') {
-            $course = $conversation->course;
-            foreach ($course->students as $student) {
-                $student->notify(new GeneralNotification(
-                    "New Announcement in Course: {$course->title}",
-                    $message->body,
-                    "announcement"
-                ));
-            }
-        } elseif (in_array($conversation->type, ['student_admin', 'teacher_admin'])) {
-            $participants = $conversation->participants()->where('user_id', '!=', $request->user()->id)->get();
-            foreach ($participants as $participant) {
-                $participant->notify(new GeneralNotification(
-                    "New Message",
-                    "You have a new message in your support/admin chat.",
-                    "chat_message"
-                ));
-            }
-        }
-
-        //  2. إذا المحادثة AI
+        // 2. إذا المحادثة هي شات الـ AI
         if ($conversation->type === 'ai_chat') {
-            $aiService = new AiService();
-            $aiResponseText = $aiService->generateResponse($conversation, $request->body, $request->user());
 
-            $aiMessage = $this->msgService->sendMessage($conversation, $request->user(), $aiResponseText, true);
-            $aiMessage->load('user:id,first_name,last_name,avatar_url');
-            broadcast(new MessageSent($aiMessage))->toOthers();
+            try {
+                // نولد الرد
+                $aiService = new \App\Services\AiService();
+                $aiResponseText = $aiService->generateResponse($conversation, $request->body, $request->user());
+
+                \Log::info('AI Response Generated: ' . $aiResponseText);
+
+                // نحفظ رد الـ AI
+                $aiMessage = $this->msgService->sendMessage($conversation, $request->user(), $aiResponseText, true);
+                $aiMessage->load('user:id,first_name,last_name,avatar_url');
+
+                // نبث رد الـ AI
+                broadcast(new \App\Events\MessageSent($aiMessage));
+
+            } catch (\Exception $e) {
+                // ✨ إذا صار خطأ بالاتصال بـ Google، رح نطبعو هنا
+                \Log::error('AI Error: ' . $e->getMessage());
+                return ApiResource::sendResponse("Message sent, but AI failed to respond.", null, 500);
+            }
 
             return ApiResource::sendResponse("Message sent.", new \App\Http\Resources\MessageResource($message), 201);
         }
