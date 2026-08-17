@@ -29,6 +29,7 @@ class AdminManagementController extends Controller
             'last_name'         => $request->last_name,
             'email'             => $request->email,
             'password'          => Hash::make($request->password),
+            'current_role'      => 'admin',
             'email_verified_at' => now(), // مفعل تلقائياً
         ]);
 

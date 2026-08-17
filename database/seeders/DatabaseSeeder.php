@@ -10,7 +10,7 @@ use Illuminate\Database\Seeder;
 class DatabaseSeeder extends Seeder
 {
     /**
-       *Seed the application's database.
+     *Seed the application's database.
      **/
     public function run(): void
     {
@@ -48,8 +48,7 @@ class DatabaseSeeder extends Seeder
 
             ChatSeeder::class,
 
-            
-
+            InstructorSeeder::class
         ]);
     }
 }

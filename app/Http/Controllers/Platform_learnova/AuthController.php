@@ -73,13 +73,16 @@ class AuthController extends Controller
 
         // 1. التحقق من صحة الإيميل والباسورد
         if (Auth::attempt($request->only('email', 'password'))) {
-        $user = Auth::user();
-
+            $user = Auth::user();
+            if ($user->status_account === 'suspend') {
+                return ApiResource::sendResponse("This account is suspend.Please contact support.", null, 403);
+            }
             if ($user->roles()->whereIn('name', ['admin', 'super_admin'])->exists()) {
 
                 // إصدار التوكن فوراً للأدمن دون الحاجة لـ OTP
                 $token = $user->createToken('auth_token')->plainTextToken;
-
+                $user->update(['status_account' => 'active']);
+                $user->save();
                 $data = [
                     'user_information' => new UserResource($user),
                     'token'            => $token,
@@ -142,6 +145,9 @@ class AuthController extends Controller
                 $user->save();
             }
 
+            $user->update(['status_account' => 'active']);
+            $user->save();
+
             $data = [
                 'user_information' => new UserResource($user),
                 'token'            => $token,
@@ -164,7 +170,14 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+
+        $user = Auth::user();
+        $user->update(['status_account' => 'inActive']);
+        $user->save();
+
         $request->user()->currentAccessToken()->delete();
+
+
 
         return ApiResource::sendResponse("Logged out successfully");
     }
