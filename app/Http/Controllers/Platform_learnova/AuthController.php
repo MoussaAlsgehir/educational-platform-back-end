@@ -116,20 +116,20 @@ class AuthController extends Controller
 
             Mail::to($user->email)->send(new OtpMail($otpCode));
 
-                // Notify user that OTP was sent for login
-                try {
-                    $user->notifyGeneral(
-                        'رمز التحقق (OTP)',
-                        'تم إرسال رمز التحقق إلى بريدك الإلكتروني. صلاحية الرمز 10 دقائق.',
-                        'auth_otp_sent'
-                    );
-                } catch (\Exception $e) {
-                }
+            // Notify user that OTP was sent for login
+            try {
+                $user->notifyGeneral(
+                    'رمز التحقق (OTP)',
+                    'تم إرسال رمز التحقق إلى بريدك الإلكتروني. صلاحية الرمز 10 دقائق.',
+                    'auth_otp_sent'
+                );
+            } catch (\Exception $e) {
+            }
 
-                $data = [
-                    'user_information' => new UserResource($user),
-                    'redirect_to'      => 'otp_verification' // توجيه الفرونت إند لصفحة الـ OTP
-                ];
+            $data = [
+                'user_information' => new UserResource($user),
+                'redirect_to'      => 'otp_verification' // توجيه الفرونت إند لصفحة الـ OTP
+            ];
 
             return ApiResource::sendResponse("Login successful. Please check your email for OTP.", $data);
         }
@@ -309,5 +309,24 @@ class AuthController extends Controller
         }
 
         return ApiResource::sendResponse("Password has been reset successfully. You can now log in.", null);
+    }
+
+    public function changeRoleUser(Request $request)
+    {
+
+        if (!(Auth::user()->hasRole('student') && Auth::user()->hasRole('instructor'))) {
+
+            return ApiResource::sendResponse('You can\'t access ,becouse not has role student or instructor.', null, 403);
+        }
+        $user = Auth::user();
+        if ($user->current_role === 'student') {
+            $user->current_role = 'instructor';
+        }
+        elseif ($user->current_role === 'instructor') {
+            $user->current_role = 'student';
+        }
+
+        $user->save();
+        return ApiResource::sendResponse('Change Current Role Successflly', null, 200);
     }
 }

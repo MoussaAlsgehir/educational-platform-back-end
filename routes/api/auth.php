@@ -15,3 +15,4 @@ Route::middleware('guest_api')->group(function () {
 
     Route::get('/courses/{courseId}/reviews', [CourseReviewController::class, 'index']);
 });
+
