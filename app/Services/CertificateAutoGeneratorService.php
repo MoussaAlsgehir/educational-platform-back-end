@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Course;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Notifications\GeneralNotification;
 
 class CertificateAutoGeneratorService
 {
@@ -128,6 +129,19 @@ class CertificateAutoGeneratorService
 
         // Save DB record
         $certificate->save();
+
+        // Notify student about issued certificate
+        try {
+            if ($student) {
+                $student->notifyGeneral(
+                    'تهانينا! شهادة صادرة',
+                    "تم إصدار شهادة إتمام دورة {$course->title}. يمكنك تنزيلها الآن.",
+                    'certificate_issued'
+                );
+            }
+        } catch (\Exception $e) {
+            Log::error('Certificate notification failed: ' . $e->getMessage());
+        }
 
         Log::info("Certificate created successfully for student {$studentId} in course {$courseId}. ID: {$certificate->id}");
 

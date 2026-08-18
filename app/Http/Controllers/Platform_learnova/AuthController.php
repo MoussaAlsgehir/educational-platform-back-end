@@ -55,6 +55,17 @@ class AuthController extends Controller
 
         Mail::to($user->email)->send(new OtpMail($otpCode));
 
+        // Notify user (welcome / OTP sent)
+        try {
+            $user->notifyGeneral(
+                'مرحباً بك في Learnova',
+                'تم إنشاء حسابك بنجاح. راجع بريدك للتحقق إن لزم.',
+                'auth_welcome'
+            );
+        } catch (\Exception $e) {
+            // handled inside notifyGeneral
+        }
+
         $data = ['user_information' => new UserResource($user)];
 
         return ApiResource::sendResponse("User registered successfully. Please check your email for verification.", $data);
@@ -105,10 +116,20 @@ class AuthController extends Controller
 
             Mail::to($user->email)->send(new OtpMail($otpCode));
 
-            $data = [
-                'user_information' => new UserResource($user),
-                'redirect_to'      => 'otp_verification' // توجيه الفرونت إند لصفحة الـ OTP
-            ];
+                // Notify user that OTP was sent for login
+                try {
+                    $user->notifyGeneral(
+                        'رمز التحقق (OTP)',
+                        'تم إرسال رمز التحقق إلى بريدك الإلكتروني. صلاحية الرمز 10 دقائق.',
+                        'auth_otp_sent'
+                    );
+                } catch (\Exception $e) {
+                }
+
+                $data = [
+                    'user_information' => new UserResource($user),
+                    'redirect_to'      => 'otp_verification' // توجيه الفرونت إند لصفحة الـ OTP
+                ];
 
             return ApiResource::sendResponse("Login successful. Please check your email for OTP.", $data);
         }
@@ -153,11 +174,15 @@ class AuthController extends Controller
                 'token'            => $token,
             ];
 
-            // $user->notify(new GeneralNotification(
-            //     "OTP Verified Successfully",
-            //     "Your OTP has been verified successfully.",
-            //     "auth_otp"
-            // ));
+            try {
+                $user->notifyGeneral(
+                    'تم تفعيل حسابك',
+                    'تم التحقق من حسابك بنجاح. يمكنك الآن الدخول إلى المنصة.',
+                    'auth_verified'
+                );
+            } catch (\Exception $e) {
+                // ignore notification failure
+            }
             return ApiResource::sendResponse("OTP verified successfully", $data);
         }
 
@@ -205,6 +230,16 @@ class AuthController extends Controller
         );
 
         Mail::to($user->email)->send(new OtpMail($otpCode));
+
+        // Notify user that password reset OTP was sent
+        try {
+            $user->notifyGeneral(
+                'رمز استعادة الحساب',
+                'أُرسل رمز الاستعادة إلى بريدك — صالح لمدة 10 دقائق.',
+                'password_reset_sent'
+            );
+        } catch (\Exception $e) {
+        }
 
         return ApiResource::sendResponse("OTP code sent to your email for password reset.", null);
     }
@@ -262,6 +297,16 @@ class AuthController extends Controller
 
         $otp->is_used = true;
         $otp->save();
+
+        // Notify user about successful password reset
+        try {
+            $user->notifyGeneral(
+                'تم تغيير كلمة المرور',
+                'تم تغيير كلمة المرور بنجاح. إن لم تكن أنت فبرجاء التواصل مع الدعم.',
+                'password_reset_success'
+            );
+        } catch (\Exception $e) {
+        }
 
         return ApiResource::sendResponse("Password has been reset successfully. You can now log in.", null);
     }

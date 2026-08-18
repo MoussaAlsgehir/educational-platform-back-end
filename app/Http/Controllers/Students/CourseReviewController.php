@@ -7,6 +7,7 @@ use App\Models\CourseReview;
 use App\Helpers\ApiResource;
 use App\Http\Requests\Students\StoreReviewRequest;
 use App\Models\Course;
+use App\Notifications\GeneralNotification;
 use Illuminate\Support\Facades\Auth;
 
 class CourseReviewController extends Controller
@@ -64,6 +65,20 @@ class CourseReviewController extends Controller
 
         $statusCode = $review->wasRecentlyCreated ? 201 : 200;
         $message    = $review->wasRecentlyCreated ? 'Review submitted successfully.' : 'Review updated successfully.';
+
+        // Notify course teacher about new review (if exists)
+        try {
+            $course = Course::find($validated['course_id']);
+            if ($course && $course->teacher) {
+                $course->teacher->notifyGeneral(
+                    'مراجعة جديدة على دورتك',
+                    "{$review->student->first_name} {$review->student->last_name} قيّم دورتك بـ {$review->rating} نجوم.",
+                    'new_review'
+                );
+            }
+        } catch (\Exception $e) {
+            // ignore notification errors
+        }
 
         return ApiResource::sendResponse($message, $review, $statusCode);
     }

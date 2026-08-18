@@ -146,4 +146,18 @@ class User extends Authenticatable
     {
         return $this->hasMany(Message::class);
     }
+
+    /**
+     * Helper to send a GeneralNotification safely.
+     * Wraps notify in try/catch so notification failures don't break the main flow.
+     */
+    public function notifyGeneral(string $title, string $body, string $type = 'general') : void
+    {
+        try {
+            $this->notify(new \App\Notifications\GeneralNotification($title, $body, $type));
+        } catch (\Exception $e) {
+            // Log and continue - notifications must not interrupt main logic
+            \Log::error("Notification failed for user {$this->id}: " . $e->getMessage());
+        }
+    }
     }
