@@ -11,7 +11,7 @@ class CourseResource extends JsonResource
     public function toArray(Request $request): array
     {
         // 1. نفحص إذا الطالب الحالي مشترك بالكورس (إذا كان مسجل دخول)
-               $isEnrolled = false;
+       $isEnrolled = false;
         $user = $request->user('sanctum');
 
         $originalPrice = (float) $this->price;
@@ -54,7 +54,7 @@ class CourseResource extends JsonResource
             ],
                         //  عدد الطلاب المسجلين (بيعتمد على withCount('students') بالكونترولر)
             'enrolled_students_count' => $this->whenCounted('students', $this->students_count, 0),
-            'total_minutes' =>$this->getTotalMinutes(), 
+            'total_minutes' =>$this->getTotalMinutes(),
 
             'rating' => [
                 'average' => $this->reviews_avg_rating ? round($this->reviews_avg_rating, 1) : 0,
@@ -62,10 +62,7 @@ class CourseResource extends JsonResource
             ],
 
 
-            'interaction_indicators' => [
-                'chat_activity' => 'normal',   // slow, normal,fast
-                'response_speed' => 'slow',   //slow, normal, fast
-            ],
+            'interaction_indicators' => $this->getInteractionIndicators(),
 
 
             'teacher' => new UserResource($this->whenLoaded('teacher')),

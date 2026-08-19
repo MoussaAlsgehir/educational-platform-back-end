@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CourseFilterRequest;
 use App\Http\Resources\CourseResource;
 use App\Models\Course;
+use App\Models\LessonProgress;
 use App\Services\CourseStatusService;
 use Auth;
 use Illuminate\Http\Request;
@@ -112,6 +113,7 @@ class StudentCourseController extends Controller
         }
 
 
+
     CourseStatusService::refresh($course);
 
     return ApiResource::sendResponse("Course retrieved successfully.", new CourseResource($course));
@@ -150,6 +152,43 @@ class StudentCourseController extends Controller
             ->get();
 
         return ApiResource::sendResponse("Suggested courses retrieved.", CourseResource::collection($courses));
+    }
+
+        public function continueWatching(Request $request )
+    {
+        $user = Auth::user();
+        $language=$request->language ?? 'ar'; 
+
+        $progress =LessonProgress::where('student_id', $user->id)
+            ->orderBy('updated_at', 'desc')
+            ->with('lesson.section.course')
+            ->first();
+
+        if (!$progress) {
+            return ApiResource::sendResponse("No progress yet.", null, 200);
+        }
+
+        $course = $progress->lesson->section->course;
+        $lesson = $progress->lesson;
+
+        $aiInsight = null;
+
+
+        try {
+            $aiService = new \App\Services\AiService();
+            $aiInsight = $aiService->generateLessonInsight($course, $lesson, $language);
+        } catch (\Exception $e) {
+            \Log::error('AI Insight Error: ' . $e->getMessage());
+        }
+
+        return ApiResource::sendResponse("Continue watching.", [
+            'course_id' => $course->id,
+            'course_title' => $course->title,
+            'lesson_id' => $lesson->id,
+            'lesson_title' => $lesson->title,
+            'watched_seconds' => $progress->watched_seconds,
+            'ai_insight' => $aiInsight
+        ]);
     }
 
 }

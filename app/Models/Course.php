@@ -139,6 +139,56 @@ class Course extends Model
 
     }
 
+        /**
+     * حساب مؤشرات التفاعل وسرعة الاستجابة
+     */
+    public function getInteractionIndicators(): array
+    {
+        $conversation = \App\Models\Conversation::where('course_id', $this->id)->where('type', 'course_group')->first();
+
+        if (!$conversation) {
+            return ['chat_activity' => 'weak', 'response_speed' => 'slow'];
+        }
+
+        $messages = $conversation->messages()->orderBy('created_at', 'asc')->get();
+
+        // 1. مؤشر التفاعل
+        $chatActivity = 'weak';
+        if ($messages->count() > 50) {
+            $chatActivity = 'strong';
+        } elseif ($messages->count() > 10) {
+            $chatActivity = 'normal';
+        }
+
+        // 2. مؤشر سرعة الاستجابة
+        $responseSpeed = 'slow';
+        $responseTimes = [];
+        $lastStudentMessageTime = null;
+
+        foreach ($messages as $message) {
+            if ($message->user_id !== $this->teacher_id) {
+                $lastStudentMessageTime = $message->created_at;
+            } elseif ($lastStudentMessageTime) {
+                $responseTimes[] = $lastStudentMessageTime->diffInMinutes($message->created_at);
+                $lastStudentMessageTime = null;
+            }
+        }
+
+        if (count($responseTimes) > 0) {
+            $avgResponseTime = array_sum($responseTimes) / count($responseTimes);
+            if ($avgResponseTime < 60) {
+                $responseSpeed = 'fast';
+            } elseif ($avgResponseTime < 1440) {
+                $responseSpeed = 'normal';
+            }
+        }
+
+        return [
+            'chat_activity' => $chatActivity,
+            'response_speed' => $responseSpeed
+        ];
+    }
+
     //scopes
 
 
