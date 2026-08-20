@@ -42,17 +42,47 @@ class ConversationController extends Controller
 
     // جلب شات الكورس الجماعي
     public function getCourseChat(Request $request, $courseId)
-    {
-        $conversation = Conversation::where('course_id', $courseId)
-            ->where('type', 'course_group')
-            ->firstOrFail();
-        $messages = $conversation->messages()->with('user:id,first_name,last_name,avatar_url')->withCount('likes')->latest('id')->cursorPaginate(20);
+{
+    $conversation = Conversation::where('course_id', $courseId)
+        ->where('type', 'course_group')
+        ->firstOrFail();
 
 
-        Gate::authorize('view', $conversation);
+    $announcement = Conversation::where('course_id', $courseId)
+        ->where('type', 'announcement')
+        ->first();
 
-        return ApiResource::sendResponse("Course chat retrieved.",  MessageResource::collection($messages), 200, $messages->nextPageUrl());
+    Gate::authorize('view', $conversation);
+
+
+    $messages = $conversation->messages()
+        ->with('user:id,first_name,last_name,avatar_url')
+        ->withCount('likes')
+        ->latest('id')
+        ->cursorPaginate(40);
+
+
+    $annonceMessages = collect();
+    if ($announcement) {
+        $annonceMessages = $announcement->messages()
+            ->with('user:id,first_name,last_name,avatar_url')
+            ->latest('id')
+            ->get();
     }
+
+
+    return ApiResource::sendResponse(
+        "Course chat retrieved.",
+        [
+            'groupChat' => MessageResource::collection($messages),
+            'announcments' => MessageResource::collection($annonceMessages),
+            'nextPageUrl' => $messages->nextPageUrl(),
+        ],
+        200,
+
+    );
+}
+
 
     // إنشاء محادثة دعم (Support)
     public function storeSupport(Request $request)
@@ -97,7 +127,7 @@ class ConversationController extends Controller
             ->with('user:id,first_name,last_name,avatar_url')
             ->withCount('likes')
             ->latest('id')
-            ->cursorPaginate(20);
+            ->cursorPaginate(40);
 
         // تحديث القراءة للطالب
         $this->convService->markAsRead($conversation, $request->user());

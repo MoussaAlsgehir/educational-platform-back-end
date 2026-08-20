@@ -88,6 +88,10 @@ Route::middleware('role:student,super_admin')->prefix('student')->group(function
     // وضع الدرس كمكتمل يدوياً
     Route::post('/lesson/{lessonId}/complete', [LessonProgressController::class, 'markAsCompleted']);
 
+    Route::get('/lesson/progress/continue', [studentCourseController::class, 'continueWatching']);
+
+    Route::post('attempts/{id}/ai-feedback', [QuizAttemptController::class, 'getAiFeedback']);
+
     // إعادة تعيين (حذف) تقدم الدرس
     // Route::post('/lesson/{lessonId}/resetProgress', [LessonProgressController::class, 'resetProgress']);
 });

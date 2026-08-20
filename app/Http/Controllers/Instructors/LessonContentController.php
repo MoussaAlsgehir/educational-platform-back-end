@@ -31,7 +31,7 @@ class LessonContentController extends Controller
         $lesson = Lesson::with('section.course')->findOrFail($lessonId);
 
         // حماية الأمن: التأكد أن المدرس يملك الكورس الذي يتبع له هذا الدرس
-        Gate::authorize('update',$lesson->section->course);
+        Gate::authorize('create',$lesson->section->course);
 
 
         $content = $this->contentService->createContent(

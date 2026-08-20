@@ -7,6 +7,7 @@ use App\Models\Conversation;
 use App\Models\Course;
 use App\Models\User;
 use App\Models\Category;
+use App\Models\Lesson;
 use App\Models\Section;
 
 class AiService
@@ -135,7 +136,7 @@ class AiService
             ],
             'contents' => $contents,
             'generationConfig' => [
-                'temperature' => 0.6, // رفعنا الحرارة شوي عشان يكتب شعر جديد ما يتكرر
+                'temperature' => 0.6,
                 'maxOutputTokens' => 2048,
             ]
         ]);
@@ -157,10 +158,8 @@ class AiService
         return "حدث خطأ في الاتصال. حاول مرة أخرى لاحقاً.";
     }
 
-        /**
-     * توليد أسئلة كويز ذكية بناءً على معطيات القسم
-     */
-   
+
+
     public function generateQuizQuestions(Section $section, array $config): array
     {
         $lessonTitles = $section->lessons->pluck('title')->implode(', ');
@@ -184,7 +183,6 @@ class AiService
 
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$this->model}:generateContent?key={$this->apiKey}";
 
-        // ✨ تصحيح ترتيب الأقواس للمصفوفة
         $response = Http::withHeaders(['Content-Type' => 'application/json'])
             ->post($url, [
                 'contents' => [
@@ -217,6 +215,72 @@ class AiService
         ]);
 
         throw new \Exception("Failed to generate quiz questions from AI.");
+    }
+
+
+
+    /**
+     * توليد معلومة عامة عن آخر درس شاهده الطالب
+     */
+    public function generateLessonInsight(Course $course, Lesson $lesson, string $language = 'ar'): string
+    {
+        $prompt = "You are an educational mentor. The student is currently watching the lesson titled '{$lesson->title}' within the course '{$course->title}'."
+                . "Provide a short (1-2 sentences) general educational fact or insight directly related to the topic of THIS lesson. Do not speculate or make up content. Respond in {$language} language.";
+
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$this->model}:generateContent?key={$this->apiKey}";
+
+        $response = Http::withHeaders(['Content-Type' => 'application/json'])
+            ->post($url, [
+                'contents' => [
+                    ['parts' => [['text' => $prompt]]]
+                ],
+                'generationConfig' => [
+                    'temperature' => 0.7,
+                    'maxOutputTokens' => 100
+                ]
+            ]);
+
+        if ($response->successful()) {
+            $text = $response->json('candidates.0.content.parts.0.text');
+            return trim($text);
+        }
+
+        \Log::error('AI Insight Error: ' . $response->body());
+        throw new \Exception("Failed to generate insight.");
+    }
+
+        /**
+     * توليد نصيحة مختصرة بناء على إجابات الطالب الخاطئة
+     */
+    public function generateQuizFeedback(array $failedQuestions, string $language = 'ar'): string
+    {
+        $prompt = "You are an educational coach. A student just finished a quiz and failed the following questions:\n";
+        foreach ($failedQuestions as $q) {
+            $prompt .= "- Question: \"{$q['question_text']}\"\n";
+            $prompt .= "- Their wrong answer: \"{$q['student_answer']}\"\n";
+        }
+        $prompt .= "Provide a very short (2-3 sentences), encouraging and actionable advice on what they should review or focus on. Do not give the correct answers. Respond in {$language} language.";
+
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$this->model}:generateContent?key={$this->apiKey}";
+
+        $response = Http::withHeaders(['Content-Type' => 'application/json'])
+            ->post($url, [
+                'contents' => [
+                    ['parts' => [['text' => $prompt]]]
+                ],
+                'generationConfig' => [
+                    'temperature' => 0.7,
+                    'maxOutputTokens' => 150
+                ]
+            ]);
+
+        if ($response->successful()) {
+            $text = $response->json('candidates.0.content.parts.0.text');
+            return trim($text);
+        }
+
+        \Log::error('AI Feedback Error: ' . $response->body());
+        throw new \Exception("Failed to generate feedback.");
     }
 
 }

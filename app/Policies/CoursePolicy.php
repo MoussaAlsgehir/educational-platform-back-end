@@ -18,11 +18,18 @@ class CoursePolicy
         }
     }
 
-    public function create(User $user)
+     public function create(User $user, Course $course)
     {
-        return $user->hasRole('instructor');
-    }
+        if ($user->isAdmin()) {
+            return true;
+        }
 
+        $isOwner = $user->hasRole('instructor') && $course->teacher_id === $user->id;
+
+        $canCreate = !$course->is_published || $course->is_editable || ($course->publish_type === 'live' && $course->status === 'active');
+
+        return $isOwner && $canCreate;
+    }
     public function update(User $user, Course $course)
     {
         $isOwner = $user->hasRole('instructor') && $course->teacher_id === $user->id;
@@ -56,7 +63,7 @@ class CoursePolicy
             return true;
         }
 
-      
+
         return $user->courses()->where('course_id', $course->id)->exists();
     }
 }

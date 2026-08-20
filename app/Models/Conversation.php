@@ -41,6 +41,7 @@ class Conversation extends Model
 
     }
 
+
     public function subject(): MorphTo
     {
         return $this->morphTo();

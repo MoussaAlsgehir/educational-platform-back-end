@@ -6,6 +6,7 @@ use App\Models\StudentAttempt;
 use App\Services\QuizService;
 use App\Helpers\ApiResource;
 use App\Http\Controllers\Controller;
+use App\Models\Quizz;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -90,5 +91,64 @@ public function destroy($id)
 
         return ApiResource::sendResponse('Attempt deleted successfully!', null, 200);
 
+    }
+
+        /**
+     * توليد نصيحة بالـ AI بناء على إجابات الطالب
+     */
+       /**
+     * توليد نصيحة بالـ AI بناء على إجابات الطالب
+     */
+    public function getAiFeedback(Request $request, $attemptId)
+    {
+        $validated = $request->validate([
+            'answers' => 'required|array',
+            'answers.*.question_id' => 'required|exists:questions,id',
+            'answers.*.answer_id' => 'required|exists:answers,id',
+        ]);
+        $language=$request->language ?? 'ar';
+
+        $attempt = StudentAttempt::findOrFail($attemptId);
+
+        // التأكد من أن الطالب يملك هاد المحاولة
+        if ($attempt->student_id !== Auth::id()) {
+            return ApiResource::sendResponse("Unauthorized.", null, 403);
+        }
+
+        $quiz = Quizz::with('questions.answers')->findOrFail($attempt->quiz_id);
+        $failedQuestions = [];
+
+        // 1. تصحيح الإجابات وجمع الخاطئة
+        foreach ($validated['answers'] as $answerData) {
+            $question = $quiz->questions->where('id', $answerData['question_id'])->first();
+            if (!$question) continue;
+
+            // جلب الجواب يلي اختارو الطالب
+            $selectedAnswer = $question->answers->where('id', $answerData['answer_id'])->first();
+            // جلب الجواب الصحيح
+            $correctAnswer = $question->answers->where('is_correct', true)->first();
+
+            if ($correctAnswer && $selectedAnswer && $correctAnswer->id === $selectedAnswer->id) {
+                continue; // صح
+            } else {
+                $failedQuestions[] = [
+                    'question_text' => $question->question_text,
+                    'student_answer' => $selectedAnswer ? $selectedAnswer->answer_text : "No answer"
+                ];
+            }
+        }
+
+        // 2. توليد نصيحة الـ AI (بـ try-catch)
+        $aiFeedback = null;
+        if (count($failedQuestions) > 0) {
+            try {
+                $aiService = new \App\Services\AiService();
+                $aiFeedback = $aiService->generateQuizFeedback($failedQuestions, $language);
+            } catch (\Exception $e) {
+                \Log::error('AI Feedback Error: ' . $e->getMessage());
+            }
+        }
+
+        return ApiResource::sendResponse('Feedback generated.', ['ai_feedback' => $aiFeedback], 200);
     }
 }
