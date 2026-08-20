@@ -174,9 +174,9 @@ class CertificateController extends Controller
     public function hasCertificateBeenIssued(Request $request)
     {
 
-    $request->validate([
-        'course_id'=>'required|integer|exists:courses,id'
-    ]);
+        $request->validate([
+            'course_id' => 'required|integer|exists:courses,id'
+        ]);
         $student = Auth::user();
 
         if ($student->current_role !== 'student') {

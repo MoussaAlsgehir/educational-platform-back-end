@@ -98,10 +98,12 @@ Route::middleware('role:student,super_admin')->prefix('student')->group(function
 
 // مسارات الشهادات للطلاب
 Route::middleware('role:student,super_admin')->prefix('student/certificates')->controller(CertificateController::class)->group(function () {
+    Route::get('/hasCertificate', 'hasCertificateBeenIssued'); // student/certificates/has-certificate - التحقق من إصدار الشهادة لدورة معينة
+
     Route::post('/check', 'exists');                        // student/certificates/check - التحقق من وجود شهادة
     Route::get('/', 'getStudentCertificates');              // student/certificates - جلب جميع شهادات الطالب
     Route::get('/{certificateId}', 'show');                // student/certificates/{id} - معلومات الشهادة
     Route::get('/{certificateId}/download', 'downloadPdf'); // student/certificates/{id}/download - تحميل PDF
-Route::get('/has-certificate', 'hasCertificateBeenIssued'); // student/certificates/has-certificate - التحقق من إصدار الشهادة لدورة معينة
+// Route::get('/has', 'hasCertificateBeenIssued'); // student/certificates/has-certificate - التحقق من إصدار الشهادة لدورة معينة
     });
 
