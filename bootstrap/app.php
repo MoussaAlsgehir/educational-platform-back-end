@@ -25,7 +25,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => CheckRole::class,
             'guest_api' => GuestApiMiddleware::class
+
+
         ]);
+        
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
