@@ -313,16 +313,21 @@ class AuthController extends Controller
 
     public function changeRoleUser(Request $request)
     {
-
+        $request->validate([
+            'role' => 'required|in:student,instructor'
+        ]);
         if (!(Auth::user()->hasRole('student') && Auth::user()->hasRole('instructor'))) {
 
             return ApiResource::sendResponse('You can\'t access ,becouse not has role student or instructor.', null, 403);
         }
         $user = Auth::user();
+        if ($user->current_role === $request['role']) {
+            return ApiResource::sendResponse('the user already possesses this role.');
+        }
+
         if ($user->current_role === 'student') {
             $user->current_role = 'instructor';
-        }
-        elseif ($user->current_role === 'instructor') {
+        } elseif ($user->current_role === 'instructor') {
             $user->current_role = 'student';
         }
 
