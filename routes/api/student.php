@@ -98,5 +98,6 @@ Route::middleware('role:student,super_admin')->prefix('student/certificates')->c
     Route::get('/', 'getStudentCertificates');              // student/certificates - جلب جميع شهادات الطالب
     Route::get('/{certificateId}', 'show');                // student/certificates/{id} - معلومات الشهادة
     Route::get('/{certificateId}/download', 'downloadPdf'); // student/certificates/{id}/download - تحميل PDF
-});
+Route::get('/has-certificate', 'hasCertificateBeenIssued'); // student/certificates/has-certificate - التحقق من إصدار الشهادة لدورة معينة
+    });
 
