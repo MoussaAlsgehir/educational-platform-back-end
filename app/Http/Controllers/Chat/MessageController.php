@@ -54,7 +54,7 @@ class MessageController extends Controller
                 broadcast(new \App\Events\MessageSent($aiMessage));
 
             } catch (\Exception $e) {
-                // ✨ إذا صار خطأ بالاتصال بـ Google، رح نطبعو هنا
+                //  إذا صار خطأ بالاتصال بـ Google، رح نطبعو هنا
                 \Log::error('AI Error: ' . $e->getMessage());
                 return ApiResource::sendResponse("Message sent, but AI failed to respond.", null, 500);
             }

@@ -13,7 +13,7 @@ class ConversationPolicy
 
     public function before(User $user, $ability)
     {
-        if ($user->isAdmin()) return true; // الأدمن يقدر يعمل كلشي
+        //if ($user->isAdmin()) return true; // الأدمن يقدر يعمل كلشي
     }
 
     // هل يقدر يشوف المحادثة؟

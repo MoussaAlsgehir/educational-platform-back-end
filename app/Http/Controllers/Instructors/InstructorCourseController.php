@@ -210,7 +210,7 @@ class InstructorCourseController extends Controller
        public function getEnrolledStudents(Course $course)
     {
         // التأكد من أن المدرس يملك هذا الكورس
-        Gate::authorize('update', $course);
+        Gate::authorize('view', $course);
 
         // جلب الطلاب مع بيانات التقدم من جدول الـ Pivot
         $students = $course->students()

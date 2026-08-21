@@ -10,12 +10,15 @@ class MessagePolicy
 {
     use HandlesAuthorization;
 
-    public function before(User $user, $ability)
+    public function before(User $user, $ability, Message $message = null)
     {
-        if ($user->isAdmin()) return true;
+
+        if ($user->isAdmin()) {
+            return true;
+        }
     }
 
-   
+
     public function update(User $user, Message $message)
     {
         return $message->user_id === $user->id;
