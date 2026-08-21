@@ -18,8 +18,10 @@ Route::get('/download-link/{contentId}', [DownloadController::class, 'generateLi
 /* --- 2. مسارات المحمية بـ Sanctum (المشتركة) --- */
 Route::middleware('auth:sanctum')->group(function () {
 
+
 Route::post('/change-current-role',[AuthController::class, 'changeRoleUser']);
 Route::get('/student/wallet/balance', [WalletController::class, 'balance']);
+
     // الملف الشخصي
     Route::prefix('profile')->group(function () {
         Route::get('/{id}', [ProfileController::class, 'show']);

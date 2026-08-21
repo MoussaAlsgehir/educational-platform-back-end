@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Helpers\ApiResource;
 use App\Models\Certificate;
 use App\Services\CertificatePdfService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class CertificateController extends Controller
@@ -130,12 +131,6 @@ class CertificateController extends Controller
 
 
 
-    /**
-     * Stream the certificate PDF as a PNG image for frontend preview.
-     *
-     * @param int $certificateId
-     * @return \Illuminate\Http\Response|\Illuminate\Http\JsonResponse
-     */
     // public function previewAsImage($certificateId)
     // {
     //     $certificate = Certificate::find($certificateId);
@@ -175,4 +170,30 @@ class CertificateController extends Controller
     //         return ApiResource::sendResponse('Error generating image preview: ' . $e->getMessage(), null, 500);
     //     }
     // }
+
+    public function hasCertificateBeenIssued(Request $request)
+    {
+
+        $request->validate([
+            'course_id' => 'required|integer|exists:courses,id'
+        ]);
+        $student = Auth::user();
+
+        if ($student->current_role !== 'student') {
+            return ApiResource::sendResponse('Unauthorized. Only students can check certificate issuance.', null, 403);
+        }
+
+        $courseId = $request['course_id'];
+
+        if ($student->courses()->wherePivot('course_id', $courseId)->wherePivot('student_id', $student->id)->doesntExist()) {
+            return ApiResource::sendResponse('Student is not enrolled in this course.', null, 403);
+        }
+        $certificateExists = Certificate::where('student_id', $student->id)
+            ->where('course_id', $courseId)
+            ->exists();
+
+        return ApiResource::sendResponse('Certificate issuance status retrieved successfully.', [
+            'has_certificate' => $certificateExists
+        ], 200);
+    }
 }
