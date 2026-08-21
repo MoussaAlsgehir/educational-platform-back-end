@@ -283,4 +283,83 @@ class AiService
         throw new \Exception("Failed to generate feedback.");
     }
 
+        /**
+     * توليد توصيات الكورسات بناءً على اشتراكات الطالب ومحادثاته
+     */
+    public function generateRecommendations(User $user): array
+    {
+        // 1. الاشتراكات (الأساس الأول)
+        $enrolledCourses = $user->courses()->latest()->take(5)->pluck('title')->implode(', ');
+        if (empty($enrolledCourses)) {
+            $enrolledCourses = "No enrolled courses yet.";
+        }
+
+        // 2. محادثات الـ AI (الأساس الثاني - نقرأ آخر 50 رسالة إذا موجودة)
+        $chatHistory = "No chat history";
+        $aiChat = Conversation::where('type', 'ai_chat')
+            ->whereHas('participants', fn($q) => $q->where('user_id', $user->id))
+            ->with(['messages' => fn($q) => $q->latest()->take(50)])
+            ->first();
+
+        if ($aiChat && $aiChat->messages->isNotEmpty()) {
+            $chatHistory = $aiChat->messages->reverse()->pluck('body')->implode(' | ');
+        }
+
+        // 3. الكورسات المتاحة لنقترح منها (ما عدا يلي مسجل فيها)
+        $availableCourses = Course::where('is_published', true)
+            ->whereIn('status', ['active', 'upcoming'])
+            ->whereNotIn('id', $user->courses->pluck('id'))
+            ->pluck('title', 'id')
+            ->toArray();
+
+        if (empty($availableCourses)) {
+            throw new \Exception("No available courses to recommend.");
+        }
+
+        // 4. بناء الـ Prompt لـ Gemini
+        $prompt = "You are an educational advisor for LearNova platform.\n";
+        $prompt .= "The student is currently enrolled in: {$enrolledCourses}.\n";
+        $prompt .= "In their recent AI chats, they discussed: {$chatHistory}.\n";
+        $prompt .= "Based PRIMARILY on their enrolled courses, and secondarily on their chat interests, recommend exactly 3 courses from this available list:\n";
+        $prompt .= json_encode(array_values($availableCourses)) . "\n";
+        $prompt .= "Respond STRICTLY with a JSON array format: [{'course_title': '...', 'reason': '...'}]";
+
+        // 5. استدعاء الـ API
+        $response = Http::withHeaders(['Content-Type' => 'application/json'])
+            ->post("https://generativelanguage.googleapis.com/v1beta/models/{$this->model}:generateContent?key={$this->apiKey}", [
+                'contents' => [['parts' => [['text' => $prompt]]]],
+                'generationConfig' => ['temperature' => 0.6, 'responseMimeType' => 'application/json']
+            ]);
+
+        if ($response->successful()) {
+            $data = json_decode($response->json('candidates.0.content.parts.0.text'), true);
+
+            if (is_array($data)) {
+                $recommendations = [];
+                foreach ($data as $item) {
+                    $courseTitle = $item['course_title'] ?? '';
+                    // مطابقة اسم الكورس مع الـ ID
+                    $courseId = array_search($courseTitle, $availableCourses);
+                    if ($courseId) {
+                        $course = Course::find($courseId);
+                        $recommendations[] = [
+                            'id'           => $course->id,
+                            'title'        => $course->title,
+                            'price'        => $course->price,
+                            'cover_image'  => $course->cover_image ? asset('storage/' . $course->cover_image) : null,
+                            'reason'       => $item['reason'] ?? 'Recommended for you'
+                        ];
+                    }
+                }
+
+                if (!empty($recommendations)) {
+                    return $recommendations;
+                }
+            }
+        }
+
+        \Log::error('AI Recommendations Error: ' . $response->body());
+        throw new \Exception("Failed to generate recommendations from AI.");
+    }
+
 }

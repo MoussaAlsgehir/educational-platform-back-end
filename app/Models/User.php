@@ -160,4 +160,8 @@ class User extends Authenticatable
             \Log::error("Notification failed for user {$this->id}: " . $e->getMessage());
         }
     }
+    public function recommendedCourses()
+{
+    return $this->belongsToMany(Course::class, 'course_recommendations')->withTimestamps();
+}
     }

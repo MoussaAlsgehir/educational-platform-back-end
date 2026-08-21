@@ -140,24 +140,65 @@ class StudentCourseController extends Controller
     /**
      * جلب 5 كورسات مقترحة عشوائياً (للواجهة الرئيسية)
      */
-    public function suggested()
+       public function suggested(Request $request)
     {
-        $courses = Course::
-         withAvg('reviews', 'rating')
-            ->withCount('reviews','students')
-            ->available()
-            ->where('is_published', true)
-            ->inRandomOrder()
-            ->take(5)
-            ->get();
+        $user = request()->user('sanctum');
 
-        return ApiResource::sendResponse("Suggested courses retrieved.", CourseResource::collection($courses));
+        // 🛡️ شبكة الأمان الأولى: إذا ما في يوزر مسجل (null)، رجع 5 كورسات عشوائية فوراً
+        if (!$user) {
+
+          //  \Log::error("null user");
+            $randomCourses = Course::available()->where('is_published', true)
+                ->inRandomOrder()->take(5)->get();
+            return ApiResource::sendResponse("Recommendations retrieved.", CourseResource::collection($randomCourses));
+        }
+
+        try {
+            // 1. التحقق إذا ما في توصيات مخزنة أبداً (أول مرة للمستخدم)
+            if ($user->recommendedCourses()->count() === 0) {
+                $randomCourses = Course::available()->where('is_published', true)
+                    ->whereNotIn('id', $user->courses->pluck('id'))
+                    ->inRandomOrder()->take(5)->get();
+                 //   \log::error("first recomendation random");
+
+                $syncData = [];
+                foreach ($randomCourses as $course) {
+                    $syncData[$course->id] = ['reason' => 'Get started with these courses!'];
+                }
+
+                $user->recommendedCourses()->sync($syncData);
+            }
+
+            // 2. محاولة تحديث التوصيات عبر الـ AI مباشرة
+            try {
+                $aiService = new \App\Services\AiService();
+                $aiRecommendations = $aiService->generateRecommendations($user);
+                $user->recommendedCourses()->sync($aiRecommendations);
+            } catch (\Exception $e) {
+                // لو فشل الـ AI، ما نعمل شي، بنخلي القديم مكانه
+                \Log::info("AI Recommendations failed, falling back: " . $e->getMessage());
+            }
+
+            // 3. نرجع التوصيات النهائية
+            $recommendations = $user->recommendedCourses()
+                ->with(['teacher', 'categories'])
+                ->take(5)->get();
+
+            return ApiResource::sendResponse("Recommendations retrieved.", CourseResource::collection($recommendations));
+
+        } catch (\Exception $e) {
+            // 🛡️ شبكة الأمان الثانية: لو صار أي خطأ غير متوقع بالداتابيز أو غيره
+            \Log::error("Recommendation Error: " . $e->getMessage());
+            $randomCourses = Course::available()->where('is_published', true)
+                ->inRandomOrder()->take(5)->get();
+            return ApiResource::sendResponse("Recommendations retrieved.", CourseResource::collection($randomCourses));
+        }
     }
 
         public function continueWatching(Request $request )
     {
         $user = Auth::user();
-        $language=$request->language ?? 'ar'; 
+        $language=$request->language ?? 'ar';
 
         $progress =LessonProgress::where('student_id', $user->id)
             ->orderBy('updated_at', 'desc')

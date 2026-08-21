@@ -12,7 +12,7 @@ return new class extends Migration
        public function up(): void
     {
         Schema::table('quizzs', function (Blueprint $table) {
-            
+
             $table->integer('questions_count')->nullable()->after('passing_score');
         });
     }
@@ -23,7 +23,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('quizzs', function (Blueprint $table) {
-            //
+            $table->dropColumn('questions_count');
         });
     }
 };
