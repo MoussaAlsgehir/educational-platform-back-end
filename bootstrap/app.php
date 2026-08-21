@@ -8,8 +8,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Helpers\ApiResource;
 use Illuminate\Auth\AuthenticationException;
-use Mockery\Matcher\Not;
-use Nette\Schema\ValidationException;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -21,37 +20,47 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
         $middleware->alias([
             'role' => CheckRole::class,
             'guest_api' => GuestApiMiddleware::class
-
-
         ]);
-        
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
-        $exceptions->render(function (NotFoundHttpException $exception) {
-            return ApiResource::sendResponse($exception->getMessage(), null, 404);
+
+
+        $exceptions->render(function (AuthenticationException $exception, $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return ApiResource::sendResponse('Unauthenticated.', null, 401);
+            }
         });
 
-        $exceptions->render(function(ValidationException $exception){
-            return ApiResource::sendResponse($exception->getMessage(), null, 422);
+        // 2. أخطاء البيانات (Validation)
+        $exceptions->render(function (ValidationException $exception, $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return ApiResource::sendResponse($exception->getMessage(), $exception->errors(), 422);
+            }
         });
 
-        $exceptions->render(function(AuthenticationException $exception){
-            return ApiResource::sendResponse($exception->getMessage(), null, 401);
+        // 3. الراوت غير موجود (404)
+        $exceptions->render(function (NotFoundHttpException $exception, $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return ApiResource::sendResponse('Resource not found.', null, 404);
+            }
         });
 
-        $exceptions->render(function(MethodNotAllowedHttpException $exception){
-            return ApiResource::sendResponse($exception->getMessage(), null, 405);
+        // 4. الميثود غلط (مثلاً بعت POST ع راوت GET)
+        $exceptions->render(function (MethodNotAllowedHttpException $exception, $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return ApiResource::sendResponse($exception->getMessage(), null, 405);
+            }
         });
 
-
-        $exceptions->render(function(Throwable $exception){
-            return ApiResource::sendResponse($exception->getMessage(), null, 500);
+        // 5. لأي خطأ تاني (500 Server Error)
+        $exceptions->render(function (Throwable $exception, $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                $message = app()->isProduction() ? 'Server Error' : $exception->getMessage();
+                return ApiResource::sendResponse($message, null, 500);
+            }
         });
-
 
     })->create();

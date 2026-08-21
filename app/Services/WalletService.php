@@ -10,11 +10,17 @@ use Exception;
 
 class WalletService
 {
-   
+
     public function addPoints(User $user, float $amount, string $type, string $description = null): Transaction
     {
         return DB::transaction(function () use ($user, $amount, $type, $description) {
-            $wallet = $user->wallet;
+
+              $wallet = Wallet::where('user_id', $user->id)->lockForUpdate()->first();
+
+            if (!$wallet) {
+                throw new Exception("Wallet not found.");
+            }
+
             $wallet->balance += $amount;
             $wallet->save();
 
@@ -29,7 +35,11 @@ class WalletService
     public function deductPoints(User $user, float $amount, string $type, string $description = null): Transaction
     {
         return DB::transaction(function () use ($user, $amount, $type, $description) {
-            $wallet = $user->wallet;
+            $wallet = Wallet::where('user_id', $user->id)->lockForUpdate()->first();
+
+            if (!$wallet) {
+                throw new Exception("Wallet not found.");
+            }
 
             if ($wallet->balance < $amount) {
                 throw new Exception("Insufficient balance.");

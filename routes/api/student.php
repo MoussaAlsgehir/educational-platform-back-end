@@ -23,7 +23,6 @@ Route::middleware('role:student,super_admin')->prefix('student')->group(function
         Route::post('{id}/delete', 'destroy'); // student/reviews/{id}/delete
     });
 
-    Route::get('/wallet/balance', [WalletController::class, 'balance']);
 
     Route::get('/courses/my-courses/show', [StudentCourseController::class, 'myCourses']);
     //  الاشتراك بالكورس

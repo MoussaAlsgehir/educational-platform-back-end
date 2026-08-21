@@ -30,7 +30,7 @@ class LessonController extends Controller
         Gate::authorize('view', $section->course);
 
 
-        $lessons = $section->lessons()->orderBy('order', 'asc')->get();
+        $lessons = $section->lessons()->with('contents')->orderBy('order', 'asc')->get();
 
         return ApiResource::sendResponse("Lessons retrieved successfully.", LessonResource::collection($lessons));
     }
@@ -84,7 +84,7 @@ class LessonController extends Controller
     {
         $lesson = Lesson::with('section.course')->findOrFail($lessonId);
 
-       
+
         Gate::authorize('delete', $lesson);
 
         $this->lessonService->deleteLesson($lesson);

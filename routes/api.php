@@ -6,6 +6,7 @@ use App\Http\Controllers\Students\DownloadController;
 use App\Http\Controllers\Platform_learnova\AuthController;
 use App\Http\Controllers\Platform_learnova\NotificationController;
 use App\Http\Controllers\Platform_learnova\ProfileController;
+use App\Http\Controllers\Students\WalletController;
 use Illuminate\Support\Facades\Route;
 
 /* --- 1. مسارات الزوار غير المسجلين --- */
@@ -18,10 +19,13 @@ Route::get('/download-link/{contentId}', [DownloadController::class, 'generateLi
 Route::middleware('auth:sanctum')->group(function () {
 
 Route::post('/change-current-role',[AuthController::class, 'changeRoleUser']);
+Route::get('/student/wallet/balance', [WalletController::class, 'balance']);
     // الملف الشخصي
     Route::prefix('profile')->group(function () {
         Route::get('/{id}', [ProfileController::class, 'show']);
         Route::post('/{id}', [ProfileController::class, 'update']);
+
+
     });
 
     // الإشعارات

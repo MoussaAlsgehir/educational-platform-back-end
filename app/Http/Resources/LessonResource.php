@@ -22,7 +22,7 @@ class LessonResource extends JsonResource
             }
             // فحص إذا كان طالب مشترك
             elseif ($course->students()->where('student_id', $user->id)->exists()) {
-                $isAccessible = true;
+                $isAccessible = $course->status!=='upcoming'&& $course->status!=='upcoming';
             }
         }
 

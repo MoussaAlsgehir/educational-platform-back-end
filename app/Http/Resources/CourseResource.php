@@ -95,6 +95,10 @@ class CourseResource extends JsonResource
 
 
             'sections' => SectionResource::collection($this->whenLoaded('sections')),
+            'chat' =>[
+                'groupChat_id'=>$this->groupChat?->id,
+                'announcement_id'=>$this->announcement?->id,
+            ]
         ];
     }
 }

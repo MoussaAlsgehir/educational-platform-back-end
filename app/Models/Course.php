@@ -189,6 +189,15 @@ class Course extends Model
         ];
     }
 
+    public function groupChat(){
+        return $this->hasOne(Conversation::class)->where('type', 'course_group');
+    }
+
+    public function announcement(){
+        return $this->hasOne(Conversation::class)->where('type', 'announcement');
+    }
+
+
     //scopes
 
 
